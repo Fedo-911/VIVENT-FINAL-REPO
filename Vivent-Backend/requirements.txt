@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+supabase
+postgrest
+pydantic>=2,<3
+python-jwt
+jwcrypto
+python-dotenv
+bcrypt==4.0.1
+httpx
+python-multipart
+email-validator
+pytest
