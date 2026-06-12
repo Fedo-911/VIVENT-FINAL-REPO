@@ -29,6 +29,19 @@ create table if not exists plans (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists user_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  plan_id uuid not null references plans(id),
+  status text not null default 'active' check (status in ('active', 'cancelled')),
+  started_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+create unique index if not exists idx_user_subscriptions_one_active
+  on user_subscriptions(user_id)
+  where status = 'active';
+
 create table if not exists events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -128,6 +141,8 @@ drop trigger if exists trg_users_updated_at on users;
 create trigger trg_users_updated_at before update on users for each row execute procedure set_updated_at();
 drop trigger if exists trg_plans_updated_at on plans;
 create trigger trg_plans_updated_at before update on plans for each row execute procedure set_updated_at();
+drop trigger if exists trg_user_subscriptions_updated_at on user_subscriptions;
+create trigger trg_user_subscriptions_updated_at before update on user_subscriptions for each row execute procedure set_updated_at();
 drop trigger if exists trg_events_updated_at on events;
 create trigger trg_events_updated_at before update on events for each row execute procedure set_updated_at();
 drop trigger if exists trg_event_registrations_updated_at on event_registrations;
