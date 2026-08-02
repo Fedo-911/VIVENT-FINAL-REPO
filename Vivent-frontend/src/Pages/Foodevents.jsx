@@ -19,7 +19,7 @@ const Foodevents = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
   const [paymentResult, setPaymentResult] = useState("");
-  const [paidEventId, setPaidEventId] = useState(null);
+  const [paidEventIds, setPaidEventIds] = useState(new Set());
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [joinForm, setJoinForm] = useState(initialFoodForm);
   const [registeredIds, setRegisteredIds] = useState(new Set());
@@ -36,7 +36,11 @@ const Foodevents = () => {
     let cancelled = false;
     setLoading(true);
     eventsApi
-      .list({ category: "food", status: "approved", page_size: 100 })
+      .listByStatuses({
+        category: "food",
+        statuses: ["approved", "completed"],
+        page_size: 100,
+      })
       .then((res) => {
         if (!cancelled) {
           setEvents(res?.items || []);
@@ -50,6 +54,39 @@ const Foodevents = () => {
         }
       });
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([paymentsApi.myPayments(), registrationsApi.myRegistrations()])
+      .then(([payments, registrations]) => {
+        if (cancelled) return;
+        setPaidEventIds(
+          new Set(
+            (payments || [])
+              .filter((payment) => payment.status === "completed")
+              .map((payment) => payment.event_id)
+          )
+        );
+        setRegisteredIds(new Set((registrations || []).map((registration) => registration.event_id)));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPaymentResult("Could not refresh your ticket and registration status.");
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      setPaymentResult("Ticket purchased successfully. You can now register for this event.");
+      params.delete("payment");
+      const nextSearch = params.toString();
+      const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
   }, []);
 
   useEffect(() => {
@@ -74,9 +111,14 @@ const Foodevents = () => {
     try {
       await registrationsApi.register(selectedEvent.id, "participant");
       setRegisteredIds((prev) => new Set([...prev, selectedEvent.id]));
-      setPaymentResult(`${selectedEvent.title} joined successfully.`);
+      setPaymentResult("Registration successful! You have joined the event.");
     } catch (err) {
-      setPaymentResult(`Error: ${err.message}`);
+      if (err.message?.toLowerCase().includes("already registered")) {
+        setRegisteredIds((prev) => new Set([...prev, selectedEvent.id]));
+        setPaymentResult(`${selectedEvent.title} is already joined.`);
+      } else {
+        setPaymentResult(`Error: ${err.message}`);
+      }
     } finally {
       setSubmitting(false);
       closeJoinForm();
@@ -87,13 +129,16 @@ const Foodevents = () => {
     if (!selectedTicket) return;
     setPayingId(selectedTicket.id);
     try {
-      const ticketPrice = selectedTicket.venue_details?.ticket_price || 1;
-      await paymentsApi.initiate(selectedTicket.id, ticketPrice, "card");
-      setPaymentResult(`${selectedTicket.title} ticket purchased successfully.`);
-      setPaidEventId(selectedTicket.id);
+      const returnUrl = `${window.location.origin}${window.location.pathname}?payment=success`;
+      const cancelUrl = `${window.location.origin}${window.location.pathname}?payment=cancelled`;
+      const session = await paymentsApi.createStripeCheckoutSession(
+        selectedTicket.id,
+        returnUrl,
+        cancelUrl
+      );
+      window.location.assign(session.checkout_url);
     } catch (err) {
       setPaymentResult(`Payment error: ${err.message}`);
-    } finally {
       setPayingId(null);
       setSelectedTicket(null);
       setShowPaymentConfirm(false);
@@ -169,6 +214,8 @@ const Foodevents = () => {
             events.map((rawItem) => {
               const item = normalizeEvent(rawItem);
               const isRegistered = registeredIds.has(item.id);
+              const isPaid = paidEventIds.has(item.id);
+              const isCompleted = item.status === "completed";
               return (
                 <article
                   className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
@@ -222,34 +269,44 @@ const Foodevents = () => {
                       <div className="flex flex-wrap gap-3">
                         <button
                           className={`min-w-32 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 ${
-                            isRegistered
+                            isCompleted
+                              ? "cursor-default bg-slate-500 hover:bg-slate-500"
+                              : isRegistered
                               ? "cursor-default bg-emerald-600 hover:bg-emerald-700"
                               : "bg-blue-800 hover:bg-blue-900"
                           }`}
                           onClick={() => {
+                            if (isCompleted) return;
                             if (isRegistered) return;
-                            if (paidEventId === item.id) {
-                              setSelectedEvent(item);
-                              setJoinForm(initialFoodForm);
-                            } else {
-                              setPaymentResult("Please purchase the ticket first.");
+                            if (!isPaid) {
+                              setPaymentResult("Please purchase a ticket before registering for this event.");
+                              return;
                             }
+                            setPaymentResult("");
+                            setSelectedEvent(item);
+                            setJoinForm(initialFoodForm);
                           }}
-                          disabled={isRegistered}
+                          disabled={isCompleted || isRegistered}
                           type="button"
                         >
-                          {isRegistered ? "Joined" : "Join Event"}
+                          {isCompleted ? "Completed" : isRegistered ? "Joined" : "Join Event"}
                         </button>
                         <button
                           className="min-w-32 rounded-full border border-blue-800 px-6 py-3 text-sm font-semibold text-blue-800 transition duration-300 hover:bg-blue-50"
                           onClick={() => {
+                            if (isPaid) return;
+                            if (isCompleted) {
+                              setPaymentResult("This event has already been completed.");
+                              return;
+                            }
                             setPaymentResult("");
                             setSelectedTicket(item);
                             setShowPaymentConfirm(false);
                           }}
+                          disabled={isPaid || isCompleted}
                           type="button"
                         >
-                          Ticket
+                          {isCompleted ? "Closed" : isPaid ? "Purchased" : "Ticket"}
                         </button>
                       </div>
                     </div>

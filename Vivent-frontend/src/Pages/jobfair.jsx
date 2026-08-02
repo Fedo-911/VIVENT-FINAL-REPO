@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FaBriefcase, FaMapMarkerAlt } from "react-icons/fa";
-import { eventsApi, registrationsApi, paymentsApi } from "../utils/api";
+import { eventsApi, registrationsApi } from "../utils/api";
+import { mergeCompletedFallbacks } from "../data/completedEvents";
 
 const initialApplication = {
   applicantName: "",
@@ -27,10 +28,14 @@ const Jobfair = () => {
     let cancelled = false;
     setLoading(true);
     eventsApi
-      .list({ category: "job_fair", status: "approved", page_size: 100 })
+      .listByStatuses({
+        category: "job_fair",
+        statuses: ["approved", "completed"],
+        page_size: 100,
+      })
       .then((res) => {
         if (!cancelled) {
-          setEvents(res?.items || []);
+          setEvents(mergeCompletedFallbacks(res?.items || [], "job_fair"));
           setLoading(false);
         }
       })
@@ -160,6 +165,7 @@ const Jobfair = () => {
             events.map((rawItem) => {
               const item = normalizeEvent(rawItem);
               const isRegistered = registeredIds.has(item.id);
+              const isCompleted = item.status === "completed";
               return (
                 <article
                   className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
@@ -231,19 +237,22 @@ const Jobfair = () => {
                       <div className="flex flex-wrap gap-3">
                         <button
                           className={`min-w-32 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 ${
-                            isRegistered
+                            isCompleted
+                              ? "cursor-default bg-slate-500 hover:bg-slate-500"
+                              : isRegistered
                               ? "cursor-default bg-emerald-600 hover:bg-emerald-700"
                               : "bg-blue-800 hover:bg-blue-900"
                           }`}
                           onClick={() => {
+                            if (isCompleted) return;
                             if (isRegistered) return;
                             setSelectedJob(item);
                             setApplicationForm(initialApplication);
                           }}
-                          disabled={isRegistered}
+                          disabled={isCompleted || isRegistered}
                           type="button"
                         >
-                          {isRegistered ? "Registered" : "Apply Now"}
+                          {isCompleted ? "Completed" : isRegistered ? "Registered" : "Apply Now"}
                         </button>
                       </div>
                     </div>

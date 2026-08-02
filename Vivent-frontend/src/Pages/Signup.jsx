@@ -153,6 +153,18 @@ const Signup = ({ onAuth }) => {
               {loading ? 'Creating Account…' : 'Sign Up'}
             </button>
 
+            <p className="mt-4 text-center text-xs leading-5 text-gray-500">
+              By creating an account, you agree to the{" "}
+              <Link to="/terms-of-service" className="font-medium text-blue-700 hover:underline">
+                Terms of Service
+              </Link>
+              {" "}and{" "}
+              <Link to="/privacy-policy" className="font-medium text-blue-700 hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+
             <div className="flex items-center my-6">
               <hr className="flex-grow border-gray-300" />
               <span className="mx-3 text-gray-500 text-sm">Or With</span>

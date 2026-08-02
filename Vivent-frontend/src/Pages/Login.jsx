@@ -6,7 +6,6 @@ import api from "../utils/api";
 const rolePath = (role) => {
   if (role === "student") return "/studentpanel";
   if (role === "business") return "/businesspanel";
-  if (role === "admin") return "/adminpanel";
   return "/";
 };
 
@@ -14,7 +13,6 @@ const Login = ({ onAuth }) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    accountType: "",
   });
   const [forgotOpen, setForgotOpen] = useState(false);
   const [resetState, setResetState] = useState({
@@ -51,17 +49,12 @@ const Login = ({ onAuth }) => {
       const data = await api.auth.login(formData.username, formData.password);
       // data = { access_token, token_type, expires_in_hours, user }
       const user = data.user;
-      const role = user?.role || formData.accountType;
+      const role = user?.role;
 
-      // Validate that the selected account type matches the actual role
-      if (
-        formData.accountType &&
-        formData.accountType !== role &&
-        role !== "admin"
-      ) {
-        setLoginError(
-          `This account is registered as "${role}", not "${formData.accountType}". Please select the correct account type.`
-        );
+      // Admin accounts cannot authenticate through the public login form.
+      // They are managed exclusively through Supabase.
+      if (role === "admin") {
+        setLoginError("This account cannot log in through the public portal.");
         setLoading(false);
         return;
       }
@@ -179,17 +172,6 @@ const Login = ({ onAuth }) => {
             required
           />
 
-          <select
-            name="accountType"
-            value={formData.accountType}
-            onChange={handleChange}
-            className="mb-4 w-full rounded-xl border border-blue-200 px-4 py-3 text-gray-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          >
-            <option value="">Select Account Type</option>
-            <option value="student">Student</option>
-            <option value="business">Business</option>
-          </select>
 
           <button
             className="w-full rounded-xl bg-blue-800 py-3 font-semibold text-white transition hover:bg-blue-900 disabled:opacity-60"

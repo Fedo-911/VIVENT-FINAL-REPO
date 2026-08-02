@@ -125,6 +125,7 @@ const Eventpage = () => {
                 </div>
               </div>
             </Link>
+
           </div>
         </div>
       </section>

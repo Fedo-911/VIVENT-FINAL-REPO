@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaCalendarAlt,
+  FaCheck,
   FaChartBar,
   FaChevronRight,
   FaClipboardList,
@@ -353,6 +354,8 @@ export const Adminpanel = () => {
   const [previousEvents, setPreviousEvents] = useState(initialPreviousEvents);
   const [managedEvents, setManagedEvents] = useState(initialManagedEvents);
   const [pendingEvents, setPendingEvents] = useState([]);
+  const [pendingEventsLoading, setPendingEventsLoading] = useState(true);
+  const [adminMessage, setAdminMessage] = useState("");
   const [editingManagedEventId, setEditingManagedEventId] = useState(null);
   const [editor, setEditor] = useState(null);
   const [deleteRequest, setDeleteRequest] = useState(null);
@@ -374,6 +377,17 @@ export const Adminpanel = () => {
     localStorage.removeItem("viventUser");
     navigate("/");
     window.location.reload();
+  };
+
+  const loadPendingEvents = () => {
+    setPendingEventsLoading(true);
+    adminApi.pendingEvents().then((data) => {
+      setPendingEvents(data?.items || data || []);
+    }).catch(() => {
+      setPendingEvents([]);
+    }).finally(() => {
+      setPendingEventsLoading(false);
+    });
   };
 
   // Load real data from backend
@@ -414,10 +428,33 @@ export const Adminpanel = () => {
     }).catch(() => {});
 
     // Load pending events for approval
-    adminApi.pendingEvents().then((data) => {
-      setPendingEvents(data?.items || data || []);
-    }).catch(() => {});
+    loadPendingEvents();
   }, []);
+
+  const approvePendingEvent = async (eventId) => {
+    setAdminMessage("");
+    try {
+      await adminApi.approveEvent(eventId);
+      setAdminMessage("Event approved successfully.");
+      loadPendingEvents();
+    } catch (err) {
+      setAdminMessage(err.message || "Could not approve event.");
+    }
+  };
+
+  const rejectPendingEvent = async (eventId) => {
+    const reason = window.prompt("Reason for rejection:");
+    if (!reason) return;
+
+    setAdminMessage("");
+    try {
+      await adminApi.rejectEvent(eventId, reason);
+      setAdminMessage("Event rejected successfully.");
+      loadPendingEvents();
+    } catch (err) {
+      setAdminMessage(err.message || "Could not reject event.");
+    }
+  };
 
   const handleManagedEventSubmit = (event, form, setForm) => {
     event.preventDefault();
@@ -527,6 +564,11 @@ export const Adminpanel = () => {
   );
 
   const stats = [
+    {
+      label: "Pending Events",
+      value: pendingEvents.length,
+      helper: "awaiting approval",
+    },
     {
       label: "Present Events",
       value: filteredPresentEvents.length,
@@ -773,6 +815,81 @@ export const Adminpanel = () => {
     </div>
   );
 
+  const renderPendingEventsTable = () => {
+    if (pendingEventsLoading) {
+      return (
+        <p className="rounded-2xl bg-blue-50 p-4 text-sm font-bold text-blue-800">
+          Loading pending events...
+        </p>
+      );
+    }
+
+    if (pendingEvents.length === 0) {
+      return (
+        <p className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">
+          No pending events right now.
+        </p>
+      );
+    }
+
+    return (
+      <div className="max-w-full overflow-x-auto">
+        <table className="w-full min-w-[760px] border-separate border-spacing-y-2">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-[0.18em] text-black">
+              <th className="px-3 py-2">Event</th>
+              <th className="px-3 py-2">Category</th>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Location</th>
+              <th className="px-3 py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pendingEvents.map((event) => (
+              <tr key={event.id} className="bg-white shadow-sm">
+                <td className="rounded-l-2xl px-3 py-3.5">
+                  <p className="text-sm font-bold text-black">{event.title}</p>
+                  <p className="mt-1 line-clamp-2 text-xs font-medium text-gray-500">
+                    {event.description || "Submitted event awaiting review"}
+                  </p>
+                </td>
+                <td className="px-3 py-3.5 text-sm text-black">
+                  {getCategoryTitle(event.category)}
+                </td>
+                <td className="px-3 py-3.5 text-sm text-black">
+                  {event.start_date ? new Date(event.start_date).toLocaleString() : "TBD"}
+                </td>
+                <td className="px-3 py-3.5 text-sm text-black">
+                  {event.location || "TBD"}
+                </td>
+                <td className="rounded-r-2xl px-3 py-3.5">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white transition hover:bg-emerald-700"
+                      onClick={() => approvePendingEvent(event.id)}
+                      type="button"
+                    >
+                      <FaCheck />
+                      Approve
+                    </button>
+                    <button
+                      className="inline-flex h-10 items-center gap-2 rounded-xl bg-red-600 px-3 text-xs font-bold text-white transition hover:bg-red-700"
+                      onClick={() => rejectPendingEvent(event.id)}
+                      type="button"
+                    >
+                      <FaTimes />
+                      Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 text-black">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -947,6 +1064,33 @@ export const Adminpanel = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {adminMessage && (
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-800">
+                  {adminMessage}
+                </div>
+              )}
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-xl font-black text-black">
+                      Pending Events
+                    </h3>
+                    <p className="text-sm font-medium text-gray-500">
+                      Approve or reject events submitted by students and businesses.
+                    </p>
+                  </div>
+                  <button
+                    className="inline-flex w-fit items-center gap-2 rounded-xl bg-blue-800 px-4 py-3 font-semibold text-white transition hover:bg-blue-900"
+                    onClick={loadPendingEvents}
+                    type="button"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                {renderPendingEventsTable()}
               </div>
 
               <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">

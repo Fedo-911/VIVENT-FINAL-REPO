@@ -41,7 +41,9 @@ async function request(method, path, body = null, options = {}) {
     try {
       const errorData = await response.json();
       errorMessage = errorData.detail || errorData.message || errorMessage;
-    } catch (_) {}
+    } catch {
+      // Keep the HTTP status message when the response body is not JSON.
+    }
     throw new Error(errorMessage);
   }
 
@@ -68,8 +70,8 @@ export const authApi = {
   login: (email, password) =>
     post("/auth/login", { email, password }),
 
-  register: (email, password, username, role) =>
-    post("/auth/register", { email, password, username, role }),
+  register: (email, password, fullName, role) =>
+    post("/auth/register", { email, password, full_name: fullName, role }),
 
   me: () => get("/auth/me"),
 
@@ -90,6 +92,22 @@ export const eventsApi = {
 
   get: (id) => get(`/events/${id}`),
 
+  listByStatuses: async ({ statuses = ["approved"], ...params } = {}) => {
+    const responses = await Promise.all(
+      statuses.map((status) => eventsApi.list({ ...params, status }))
+    );
+    const items = responses
+      .flatMap((response) => response?.items || [])
+      .sort((first, second) =>
+        String(first.start_date || "").localeCompare(String(second.start_date || ""))
+      );
+    return {
+      ...(responses[0] || {}),
+      items,
+      total: items.length,
+    };
+  },
+
   create: (payload) => post("/events", payload),
 
   update: (id, payload) => patch(`/events/${id}`, payload),
@@ -106,6 +124,8 @@ export const registrationsApi = {
   register: (eventId, role = "participant") =>
     post(`/events/${eventId}/register`, { role }),
 
+  myRegistrations: () => get("/registrations/my"),
+
   getEventRegistrations: (eventId) =>
     get(`/events/${eventId}/registrations`),
 
@@ -119,12 +139,17 @@ export const paymentsApi = {
   initiate: (eventId, amount, method = "card") =>
     post("/payments/initiate", { event_id: eventId, amount, payment_method: method }),
 
+  createStripeCheckoutSession: (eventId, successUrl, cancelUrl) =>
+    post("/payments/stripe/create-checkout-session", {
+      event_id: eventId,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    }),
+
   confirm: (transactionId) =>
     post("/payments/confirm", { transaction_id: transactionId }),
 
   myPayments: () => get("/payments/my-payments"),
-
-  adminPayments: () => get("/payments/admin/all"),
 };
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
@@ -136,11 +161,19 @@ export const analyticsApi = {
   eventAnalytics: (eventId) => get(`/analytics/events/${eventId}`),
 };
 
+// â”€â”€â”€ Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+export const adminApi = {
+  pendingEvents: () => get("/admin/events/pending"),
+  approveEvent: (id) => request("PUT", `/admin/events/${id}/approve`),
+  rejectEvent: (id, detail) => request("PUT", `/admin/events/${id}/reject`, { detail }),
+  dashboard: () => analyticsApi.adminDashboard(),
+};
+
 // ─── Records ──────────────────────────────────────────────────────────────────
 
 export const recordsApi = {
   myEvents: () => get("/records/my-events"),
-  adminRecords: () => get("/records/admin"),
 };
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
@@ -174,16 +207,6 @@ export const adsApi = {
   reject: (id) => patch(`/ads/${id}/reject`, {}),
 };
 
-// ─── Admin ────────────────────────────────────────────────────────────────────
-
-export const adminApi = {
-  pendingEvents: () => get("/admin/events/pending"),
-  approveEvent: (id) => patch(`/admin/events/${id}/approve`, {}),
-  rejectEvent: (id, reason) => patch(`/admin/events/${id}/reject`, { reason }),
-  allUsers: () => get("/admin/users"),
-  updateUser: (id, payload) => patch(`/admin/users/${id}`, payload),
-};
-
 // ─── AI Features ──────────────────────────────────────────────────────────────
 
 export const aiApi = {
@@ -214,11 +237,11 @@ const api = {
   registrations: registrationsApi,
   payments: paymentsApi,
   analytics: analyticsApi,
+  admin: adminApi,
   records: recordsApi,
   plans: plansApi,
   social: socialApi,
   ads: adsApi,
-  admin: adminApi,
   ai: aiApi,
   subscriptions: subscriptionsApi,
 };
