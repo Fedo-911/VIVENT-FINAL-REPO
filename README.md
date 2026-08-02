@@ -4,195 +4,212 @@
 ![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=111)
 ![Vite](https://img.shields.io/badge/Build-Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Database-Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
-VIVENT is a full-stack event management platform for students, business organizers, and administrators. It combines a FastAPI backend, a React + Vite frontend, and a Supabase PostgreSQL database to support event discovery, event creation, role-based dashboards, registration, payments, notifications, analytics, moderation, and promotion workflows.
+VIVENT is a full-stack event-management platform for students, business organizers, and platform administrators. The repository contains a FastAPI backend, a React/Vite frontend, and a Supabase PostgreSQL schema for event discovery, event creation, admin approval, ticketing, registration, payments, dashboards, records, plans, notifications, discussions, analytics, and mock social promotion workflows.
 
-The repository is organized as a monorepo with separate backend and frontend applications. The backend exposes modular REST APIs for authentication, users, events, plans, registrations, payments, ads, discussions, notifications, analytics, records, social-account linking, and subscriptions. The frontend provides role-specific panels, protected routes, and JWT-based session storage in the browser.
+The current implementation is a two-application monorepo:
 
-## Project Overview
+- [Vivent-Backend](./Vivent-Backend/README.md): FastAPI REST API, Supabase persistence, JWT authentication, business rules, tests, and seed scripts.
+- [Vivent-frontend](./Vivent-frontend/README.md): React single-page app with public pages, protected routes, event-category pages, and role dashboards.
 
-VIVENT solves the coordination problem around campus and commercial events. Students need one place to discover job fairs, food events, and educational expos; businesses need tools to create and promote events; administrators need approval workflows, analytics, and platform-level controls.
+Dependency/cache README files inside `node_modules`, `.pytest_cache`, and the checked-in backend virtual environment are generated/vendor documentation and are not project documentation.
 
-The target users are students, event-hosting businesses, and platform administrators. Its business value is centralization: event approval, participant tracking, payments, records, dashboards, and promotion plans are handled in one role-aware system.
-
-## Key Features
-
-### Student Features
-
-- Registration/login through `POST /auth/register` and `POST /auth/login`.
-- JWT-backed protected routes using `localStorage`.
-- Student dashboard at `/studentpanel`.
-- Browse approved job fair, food, and educational events from `/events`.
-- Register for approved events through `POST /events/{event_id}/register`.
-- Submit job fair application details and CV file selection UI in the job fair flow.
-- Initiate mock card payments through `POST /payments/initiate`.
-- View joined/current events and past event records through `/records/my-events`.
-- View student dashboard analytics through `/analytics/student/dashboard`, including registered events, pending payments, and upcoming events.
-- Navigate event categories and view public pricing/promotion plans through `/plans`.
-- Select or change an active subscription plan through `/subscriptions`.
-- Cancel an active subscription through `/subscriptions/cancel`.
-- Receive backend notifications for registration, payment, approval, rejection, and ad decisions.
-- Read event discussion threads and post messages when registered or otherwise authorized.
-- Link mock social accounts for Facebook, Instagram, LinkedIn, and X/Twitter through `/social/link-session` and `/social/callback`.
-
-### Business Features
-
-- Business registration and login.
-- Business dashboard at `/businesspanel`.
-- Create pending events with title, description, category, dates, location, venue details, plan, and participant limit.
-- Edit own events through `PATCH /events/{event_id}`.
-- Delete own events through `DELETE /events/{event_id}`.
-- View business analytics, created events, registration counts, and revenue per event.
-- View current/past events and financial records through `/records`.
-- View registrations for events created by the business through `GET /events/{event_id}/registrations`.
-- View payments for owned events through `GET /payments/event/{event_id}`.
-- Select pricing or promotion plans from `/plans` and `/subscriptions`.
-- Request social media promotion for an event through `POST /events/{event_id}/ads/request`.
-- Link mock social accounts for promotion workflows.
-- Use AI-assisted event description generation through `POST /events/ai/generate-description`.
-
-### Admin Features
-
-- Admin login through the seeded admin account from `seed.py`.
-- Admin dashboard at `/adminpanel`.
-- List all users through `GET /users`.
-- Read and update user profiles through `GET /users/{user_id}` and `PATCH /users/{user_id}`.
-- Activate or deactivate users through admin update permissions.
-- View pending event approvals through `GET /admin/events/pending`.
-- Approve events through `PUT /admin/events/{event_id}/approve`.
-- Reject events with a reason through `PUT /admin/events/{event_id}/reject`.
-- Create, update, and deactivate pricing plans through `/plans`.
-- View all platform events through records and dashboard flows.
-- View all financial records through `/records/financial`.
-- Access and refresh cached admin analytics.
-- Generate AI-powered admin insight reports through `POST /analytics/admin/ai/insights`.
-- Review all ad requests through `GET /ads/requests`.
-- Approve ad requests through `PUT /admin/ads/{ad_id}/approve`.
-- Reject ad requests through `PUT /admin/ads/{ad_id}/reject`.
-- Trigger simulated auto-publishing to linked social accounts.
-- Manage frontend post-management and client-analytics UI sections in the admin panel.
-
-## System Architecture
-
-### Frontend
-
-The frontend is built with React 19, Vite 8, React Router DOM 7, Tailwind CSS 4, and React Icons. Routing lives in `Vivent-frontend/src/App.jsx`, with a `ProtectedRoute` wrapper for authenticated pages.
-
-State is mostly local React state with `useState` and `useEffect`. Authentication is persisted in `localStorage`. API calls are centralized in `src/utils/api.js`, which injects the JWT bearer token and redirects to `/login` on `401`.
-
-Main frontend pages include authentication, event browsing, static information pages, and role dashboards for students, businesses, and admins.
-
-### Backend
-
-The backend starts in `Vivent-Backend/main.py`, configures CORS, validates Supabase access, starts an analytics cache worker, and mounts routers from `routers/`. Pydantic schemas in `schemas/` validate requests and responses. Shared logic in `utils/` covers JWTs, password hashing, AI helpers, analytics caching, and validation.
-
-### Database
-
-Supabase PostgreSQL is accessed from the backend through the Supabase Python client. The schema is defined in `Vivent-Backend/schema.sql` and includes `users`, `plans`, `user_subscriptions`, `events`, `event_registrations`, `payments`, `discussions`, `social_media_ads`, `notifications`, `analytics_cache`, and `linked_social_accounts`.
-
-### Authentication
-
-Authentication uses email/password login, bcrypt password hashing, and JWT access tokens with `sub`, `role`, `email`, `exp`, and `iat` claims. Protected endpoints use `HTTPBearer`, `get_current_user`, `require_roles`, and `require_self_or_admin`.
-
-## Repository Structure
+## Current Architecture
 
 ```text
 VIVENT-FINAL-REPO/
-|
-├── Vivent-Backend/
-|   ├── routers/                 # FastAPI route modules grouped by domain
-|   ├── schemas/                 # Pydantic request/response models
-|   ├── tests/                   # Pytest test suite with mocked Supabase client
-|   ├── utils/                   # JWT, password, AI, analytics, and helper utilities
-|   ├── config.py                # Environment-based backend settings
-|   ├── dependencies.py          # Auth and role-based dependency functions
-|   ├── main.py                  # FastAPI app, CORS, startup hooks, router mounting
-|   ├── requirements.txt         # Python dependencies
-|   ├── schema.sql               # Supabase/PostgreSQL schema
-|   ├── seed.py                  # Default plans and admin seed script
-|   ├── seed_mock_data.py        # Demo data seeder for users, events, payments
-|   └── supabase_client.py       # Supabase client initialization and key validation
-|
-├── Vivent-frontend/
-|   ├── public/                  # Static public assets
-|   ├── src/
-|   |   ├── Pages/               # Main React pages and role dashboards
-|   |   ├── assets/              # Frontend image/SVG assets
-|   |   ├── data/                # Static event catalog used by UI
-|   |   ├── layout/              # Header, footer, floating FAQ
-|   |   ├── utils/               # API client and localStorage helpers
-|   |   ├── App.jsx              # Router and protected route setup
-|   |   ├── main.jsx             # React app entrypoint
-|   |   └── index.css            # Global styles
-|   ├── package.json             # Frontend scripts and dependencies
-|   ├── vite.config.js           # Vite and Tailwind configuration
-|   └── eslint.config.js         # ESLint configuration
-|
-└── README.md
+|-- README.md
+|-- Vivent-Backend/
+|   |-- main.py
+|   |-- config.py
+|   |-- dependencies.py
+|   |-- supabase_client.py
+|   |-- schema.sql
+|   |-- seed.py
+|   |-- seed_mock_data.py
+|   |-- requirements.txt
+|   |-- routers/
+|   |-- schemas/
+|   |-- tests/
+|   `-- utils/
+`-- Vivent-frontend/
+    |-- index.html
+    |-- package.json
+    |-- vite.config.js
+    |-- eslint.config.js
+    |-- public/
+    `-- src/
+        |-- App.jsx
+        |-- main.jsx
+        |-- Pages/
+        |-- layout/
+        |-- utils/
+        |-- data/
+        `-- assets/
 ```
 
-## Technology Stack
+## Tech Stack
 
-| Layer | Technology |
+| Layer | Current implementation |
 | --- | --- |
 | Frontend | React 19, Vite 8, React Router DOM 7 |
 | Styling | Tailwind CSS 4, custom CSS, React Icons |
 | Backend | FastAPI, Uvicorn, Pydantic v2 |
-| Database | Supabase PostgreSQL via Supabase Python client |
-| Authentication | Backend JWT, bcrypt password hashing, FastAPI HTTPBearer |
-| Authorization | Role-based access control for `student`, `business`, and `admin` |
-| AI | Gemini API support through `GEMINI_API_KEY`, with local fallback logic |
-| Payments | Mock direct payment flow and mock Stripe checkout/webhook flow |
-| Testing | Pytest, FastAPI TestClient, mocked Supabase |
-| Deployment | Backend can run with Uvicorn; frontend can be built with Vite |
+| Database | Supabase PostgreSQL through the Supabase Python client |
+| Auth | Email/password, bcrypt password hashes, JWT bearer tokens; fallback support for Supabase Auth access tokens in backend dependencies |
+| Authorization | Backend role checks for `student`, `business`, and `admin` |
+| Payments | Direct mock payment endpoint and mock Stripe checkout/webhook simulator |
+| AI | Gemini-backed event/admin copy helpers when `GEMINI_API_KEY` is set, with local fallback logic |
+| Tests | Pytest, FastAPI TestClient, in-memory fake Supabase client |
 
-## Database Design
+## Main Features
 
-| Table | Purpose | Key Relationships |
+### Student
+
+- Sign up and log in as a `student`.
+- Browse approved event categories: Job Fair, Food Events, and Educational Expo.
+- Register for approved job fair events.
+- Purchase tickets before joining/registering for food and educational events.
+- View joined/current events and records in the student dashboard.
+- View student dashboard analytics.
+- Select, switch, or cancel an active plan subscription.
+- View notifications and event discussion content where authorized.
+
+### Business
+
+- Sign up and log in as a `business`.
+- Create event submissions with category, dates, location, participant limit, selected plan, and `venue_details`.
+- Include ticket pricing in `venue_details.ticket_price`.
+- Edit or delete owned approved events or pending submissions.
+- View business dashboard metrics, created event records, registration counts, and revenue.
+- Request social media promotion for owned events.
+- Select, switch, or cancel plan subscriptions.
+- Generate AI-assisted event descriptions.
+
+### Admin
+
+- Access admin APIs with an admin account managed outside public registration.
+- Use the frontend `/adminpanel` only after the app verifies the JWT through `GET /auth/me`.
+- Review pending events from `pending_events`.
+- Approve events by moving them into the public `events` table.
+- Reject events with a reason and notify the creator.
+- Manage users and plans through backend APIs.
+- View platform analytics, financial records, ad requests, and cached admin metrics.
+- Approve or reject social media ad requests.
+
+## Event, Ticket, and Registration Flow
+
+Event creation currently uses a review queue:
+
+1. A student or business creates an event with `POST /events`.
+2. The backend writes the submission to `pending_events` with `status = pending`.
+3. Admins list submissions with `GET /admin/events/pending`.
+4. Approval via `PUT` or `PATCH /admin/events/{event_id}/approve` inserts the row into `events` with `status = approved` and deletes it from `pending_events`.
+5. Rejection via `PUT` or `PATCH /admin/events/{event_id}/reject` deletes the pending row, records the rejection reason in the returned payload, and notifies the creator.
+
+Ticketing has category-specific rules:
+
+| Category | Backend category value | Current user flow |
 | --- | --- | --- |
-| `users` | Stores platform users, password hashes, roles, and active status. | Referenced by events, registrations, payments, discussions, ads, notifications, and linked accounts. |
-| `plans` | Stores Basic, Normal, and Premium plans with price and facilities JSON. | Referenced by `events.plan_id`. |
-| `user_subscriptions` | Stores each user's active or cancelled plan subscription. | Links `users` to `plans`; enforces one active subscription per user. |
-| `events` | Stores event details, category, status, schedule, location, creator, approval user, and capacity. | Created by `users`; approved by admin users; linked to plans. |
-| `event_registrations` | Tracks user registration for events and payment status. | Links `users` and `events`; unique per user/event pair. |
-| `payments` | Stores event payment transactions, status, method, and amount. | Links users to paid event transactions. |
-| `discussions` | Stores event discussion messages. | Links messages to users and events. |
-| `social_media_ads` | Stores event promotion requests and admin review status. | Links promotion requests to events and requesting users. |
-| `notifications` | Stores user-facing messages. | Linked to users. |
-| `analytics_cache` | Stores precomputed dashboard metrics. | Used by the admin analytics cache worker. |
-| `linked_social_accounts` | Stores mock linked social accounts and generated access tokens. | Linked to users, unique per user/platform. |
+| Job Fair | `job_fair` | Register first through `/events/{event_id}/register`; payment can be initiated afterward when needed. |
+| Food Events | `food` | Purchase a completed ticket first, then register/join. |
+| Educational Expo | `educational` | Purchase a completed ticket first, then register/join. |
+| Expo | `expo` | Supported by backend validation, but no dedicated frontend category page exists. |
 
-The schema uses UUID primary keys, foreign keys, status/category checks, timestamps, update triggers, and Supabase service-role grants.
+Food and educational ticket purchase can use the mock Stripe session flow:
+
+1. Frontend calls `POST /payments/stripe/create-checkout-session`.
+2. Backend returns a mock checkout URL.
+3. The mock portal posts `checkout.session.completed` to `POST /payments/stripe/webhook`.
+4. Backend records a completed payment.
+5. The user returns to the category page and can register.
+
+The direct `POST /payments/initiate` endpoint also creates a completed mock payment. For food and educational events it allows ticket purchase before registration; for non-ticket-first events it requires an existing registration unless the caller is the event creator or admin.
+
+## Database
+
+The Supabase/PostgreSQL schema is in [Vivent-Backend/schema.sql](./Vivent-Backend/schema.sql). It defines:
+
+| Table | Purpose |
+| --- | --- |
+| `users` | Application users, roles, password hashes, and active status. |
+| `plans` | Basic, Normal, and Premium plan definitions. |
+| `user_subscriptions` | One active plan subscription per user. |
+| `pending_events` | Event submissions waiting for admin approval. |
+| `events` | Public approved or completed events. |
+| `event_registrations` | User/event joins with payment status and payment reference. |
+| `payments` | Mock payment ledger and Stripe simulator transactions. |
+| `discussions` | Event discussion messages. |
+| `social_media_ads` | Promotion requests and admin decisions. |
+| `notifications` | User-facing backend notifications. |
+| `analytics_cache` | Cached admin dashboard data. |
+| `linked_social_accounts` | Mock linked social accounts for promotion flows. |
+
+The schema enables RLS, defines policies, grants service-role access, and adds constraints/triggers for statuses, roles, categories, timestamps, and role-escalation protection.
+
+No Supabase Storage bucket or backend file-upload endpoint is currently implemented. Job fair CV selection exists in the frontend UI, but selected files are not uploaded to storage by the current backend.
+
+## Authentication and Roles
+
+Public registration accepts only `student` and `business` roles. Public login at `POST /auth/login` rejects `admin` users.
+
+Admin accounts are seeded or managed through trusted backend/Supabase operations. The backend includes a hidden `POST /auth/admin/login` endpoint for admin accounts; it is excluded from public OpenAPI docs and has no frontend login page. In production, protect that path at the deployment/reverse-proxy layer.
+
+The frontend stores session state in:
+
+- `viventAuth`
+- `viventToken`
+- `viventAuthRole`
+- `viventUser`
+
+The API client attaches `Authorization: Bearer <token>` and clears local session data on `401`.
 
 ## API Overview
 
-| Router | Purpose | Main Endpoints | Operations |
-| --- | --- | --- | --- |
-| `auth` | Registration, login, current user, logout placeholder. | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/logout` | Create accounts, issue JWTs, read session user. |
-| `users` | User profile and admin user management. | `/users`, `/users/{user_id}` | List, read, update users. |
-| `events` | Event creation, listing, detail, update, delete, AI description generation. | `/events`, `/events/{event_id}`, `/events/ai/generate-description` | CRUD, filters, pagination, AI copy. |
-| `admin_events` | Admin event moderation. | `/admin/events/pending`, `/admin/events/{event_id}/approve`, `/admin/events/{event_id}/reject` | Review, approve, reject. |
-| `plans` | Public plan listing and admin plan management. | `/plans`, `/plans/{plan_id}` | List, create, update, soft-delete. |
-| `registrations` | Event registration and attendee lists. | `/events/{event_id}/register`, `/events/{event_id}/registrations` | Register, list registrations. |
-| `payments` | Mock payments and mock Stripe checkout. | `/payments/initiate`, `/payments/user`, `/payments/event/{event_id}`, `/payments/stripe/create-checkout-session`, `/payments/stripe/mock-checkout`, `/payments/stripe/webhook` | Pay, list payments, simulate checkout and webhook. |
-| `ads` | Social media ad requests and admin decisions. | `/events/{event_id}/ads/request`, `/ads/requests`, `/admin/ads/{ad_id}/approve`, `/admin/ads/{ad_id}/reject` | Request, list, approve, reject, simulated publishing. |
-| `discussions` | Event discussion messages. | `/events/{event_id}/discussions` | List and create messages. |
-| `notifications` | User notifications. | `/notifications`, `/notifications/{notif_id}/read` | List and mark read. |
-| `analytics` | Role-based dashboards and AI insights. | `/analytics/admin/dashboard`, `/analytics/admin/dashboard/refresh`, `/analytics/student/dashboard`, `/analytics/business/dashboard`, `/analytics/admin/ai/insights` | Metrics, cache refresh, AI reports. |
-| `records` | Event and financial records. | `/records/my-events`, `/records/financial` | Current/past event records and payment history. |
-| `social` | Mock OAuth social linking. | `/social/link-session`, `/social/mock-oauth-portal`, `/social/callback`, `/social/accounts`, `/social/accounts/{account_id}` | Link, list, unlink accounts. |
-| `subscriptions` | User plan subscription lifecycle. | `/subscriptions/me`, `/subscriptions`, `/subscriptions/cancel` | Read active plan, subscribe/switch, cancel. |
+| Area | Endpoints |
+| --- | --- |
+| Health | `GET /` |
+| Auth | `POST /auth/register`, `POST /auth/login`, hidden `POST /auth/admin/login`, `GET /auth/me`, `POST /auth/logout` |
+| Users | `GET /users`, `GET /users/{user_id}`, `PATCH /users/{user_id}` |
+| Events | `GET /events`, `POST /events`, `GET /events/{event_id}`, `PATCH /events/{event_id}`, `DELETE /events/{event_id}`, `POST /events/ai/generate-description` |
+| Admin events | `GET /admin/events/pending`, `PUT/PATCH /admin/events/{event_id}/approve`, `PUT/PATCH /admin/events/{event_id}/reject` |
+| Registrations | `POST /events/{event_id}/register`, `GET /registrations/my`, `GET /events/{event_id}/registrations` |
+| Payments | `POST /payments/initiate`, `GET /payments/user`, `GET /payments/my-payments`, `GET /payments/admin/all`, `GET /payments/event/{event_id}`, `POST /payments/stripe/create-checkout-session`, `GET /payments/stripe/mock-checkout`, `POST /payments/stripe/webhook` |
+| Plans | `GET /plans`, `POST /plans`, `PATCH /plans/{plan_id}`, `DELETE /plans/{plan_id}` |
+| Subscriptions | `GET /subscriptions/me`, `POST /subscriptions`, `PATCH /subscriptions/cancel` |
+| Records | `GET /records/my-events`, `GET /records/financial` |
+| Analytics | `GET /analytics/admin/dashboard`, `POST /analytics/admin/dashboard/refresh`, `GET /analytics/student/dashboard`, `GET /analytics/business/dashboard`, `POST /analytics/admin/ai/insights` |
+| Ads | `POST /events/{event_id}/ads/request`, `GET /ads/requests`, `PUT /admin/ads/{ad_id}/approve`, `PUT /admin/ads/{ad_id}/reject` |
+| Discussions | `GET /events/{event_id}/discussions`, `POST /events/{event_id}/discussions` |
+| Notifications | `GET /notifications`, `PUT /notifications/{notif_id}/read` |
+| Social | `GET /social/link-session`, `GET /social/mock-oauth-portal`, `POST /social/callback`, `GET /social/accounts`, `DELETE /social/accounts/{account_id}` |
 
-## Installation Guide
+## Environment Variables
 
-### Prerequisites
+Backend variables are loaded from `Vivent-Backend/.env`:
 
-- Python 3.10 or later.
-- Node.js and npm.
-- Supabase project with a backend service-role or secret key.
+| Variable | Required | Description |
+| --- | --- | --- |
+| `APP_NAME` | No | FastAPI application name. |
+| `APP_VERSION` | No | FastAPI version string. |
+| `SUPABASE_URL` | Yes | Supabase project URL. |
+| `SUPABASE_SECRET_KEY` | Yes, preferred | Backend secret key. Do not use a publishable key. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Fallback | Legacy service-role key name. |
+| `SUPABASE_KEY` | Fallback | Legacy service-role key name. |
+| `JWT_SECRET` | Yes | JWT signing secret. |
+| `JWT_ALGORITHM` | No | Defaults to `HS256`. |
+| `ACCESS_TOKEN_EXPIRE_HOURS` | No | Defaults to `24`. |
+| `CORS_ALLOW_ORIGINS` | No | Comma-separated origins or `*`. |
+| `ZOOM_CLIENT_ID` | No | Present in settings, not currently wired to routes. |
+| `ZOOM_CLIENT_SECRET` | No | Present in settings, not currently wired to routes. |
+| `ZOOM_ACCOUNT_ID` | No | Present in settings, not currently wired to routes. |
+| `GEMINI_API_KEY` | No | Enables Gemini-backed AI helpers; local fallback is used without it. |
 
-### Backend Setup
+The frontend currently reads no Vite environment variables. Its backend base URL is hardcoded in [Vivent-frontend/src/utils/api.js](./Vivent-frontend/src/utils/api.js).
+
+## Installation
+
+### Backend
 
 ```bash
 cd Vivent-Backend
@@ -201,22 +218,27 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in `Vivent-Backend/` using `.env.example` as a template.
+Create `Vivent-Backend/.env` from [Vivent-Backend/.env.example](./Vivent-Backend/.env.example), then run [Vivent-Backend/schema.sql](./Vivent-Backend/schema.sql) in the Supabase SQL editor.
+
+Seed default plans and the default admin user:
 
 ```bash
 python seed.py
+```
+
+Start the API:
+
+```bash
 uvicorn main:app --reload
 ```
 
-The backend runs at:
+Backend URLs:
 
-```text
-http://127.0.0.1:8000
-```
+- API root: `http://127.0.0.1:8000/`
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
 
-Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
-
-### Frontend Setup
+### Frontend
 
 ```bash
 cd Vivent-frontend
@@ -224,112 +246,62 @@ npm install
 npm run dev
 ```
 
-The Vite development server runs at:
+The dev server is configured for `http://localhost:5173`.
 
-```text
-http://localhost:5173
-```
+## Commands
 
-Other frontend commands are `npm run build`, `npm run lint`, and `npm run preview`.
+| Location | Command | Purpose |
+| --- | --- | --- |
+| `Vivent-Backend` | `uvicorn main:app --reload` | Run FastAPI locally. |
+| `Vivent-Backend` | `python seed.py` | Seed Basic/Normal/Premium plans and default admin. |
+| `Vivent-Backend` | `python seed_mock_data.py` | Seed demo users/events/payments for development. |
+| `Vivent-Backend` | `python -m pytest` | Run backend tests. |
+| `Vivent-frontend` | `npm run dev` | Run Vite dev server. |
+| `Vivent-frontend` | `npm run build` | Build frontend into `dist/`. |
+| `Vivent-frontend` | `npm run preview` | Preview a production build locally. |
+| `Vivent-frontend` | `npm run lint` | Run ESLint. |
 
-## Environment Variables
+## Build and Deployment
 
-| Variable | Description |
-| --- | --- |
-| `APP_NAME` | Backend application name. Defaults to `VIVENT Event Management System`. |
-| `APP_VERSION` | Backend version string. |
-| `SUPABASE_URL` | Supabase project URL. |
-| `SUPABASE_SECRET_KEY` | Preferred backend Supabase secret/service key. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Legacy fallback service-role key name. |
-| `SUPABASE_KEY` | Legacy fallback Supabase key name. |
-| `JWT_SECRET` | Secret used to sign and verify JWT access tokens. |
-| `JWT_ALGORITHM` | JWT algorithm, default `HS256`. |
-| `ACCESS_TOKEN_EXPIRE_HOURS` | JWT expiry duration in hours. |
-| `CORS_ALLOW_ORIGINS` | Comma-separated CORS origins or `*`. |
-| `ZOOM_CLIENT_ID` | Reserved for Zoom server-to-server OAuth credentials. |
-| `ZOOM_CLIENT_SECRET` | Reserved for Zoom server-to-server OAuth credentials. |
-| `ZOOM_ACCOUNT_ID` | Reserved for Zoom server-to-server OAuth credentials. |
-| `GEMINI_API_KEY` | Optional Gemini API key for AI event descriptions and admin insights. |
+No production deployment manifests or CI/CD files are present in the repository.
 
-The frontend currently uses `http://127.0.0.1:8000` as the backend base URL in `src/utils/api.js`.
+For deployment, build the frontend with `npm run build` and serve `Vivent-frontend/dist` from a static host. Run the backend with an ASGI server such as Uvicorn behind your platform's process manager or reverse proxy, with production Supabase and JWT environment variables configured.
 
-## Running the Application
+The mock Stripe checkout, mock social OAuth, and hidden admin login endpoint should be reviewed before production use.
 
-1. Run `Vivent-Backend/schema.sql` in the Supabase SQL editor.
-2. Add backend environment variables in `Vivent-Backend/.env`.
-3. Start FastAPI with `uvicorn main:app --reload`.
-4. Run `python seed.py` for default plans and admin access.
-5. Start the frontend with `npm run dev`.
-6. Open `http://localhost:5173`.
+## Testing and Validation
 
-Default seeded admin account: `admin@vivent.com` / `Admin123!`.
+Backend tests live in [Vivent-Backend/tests](./Vivent-Backend/tests). They use a fake in-memory Supabase implementation and cover auth, users, plans, events, admin approval, registrations, ticket-first payment behavior, payments, mock Stripe webhook idempotency, analytics, AI helpers, records, notifications, discussions, ads, and social linking.
 
-## User Workflow
-
-### Student Journey
-
-Students register on `/signup`, log in automatically, and are redirected to `/studentpanel`. They browse approved event categories, register for events, complete mock payments where required, and then track joined events, records, subscriptions, notifications, and dashboard analytics.
-
-### Business Journey
-
-Business users log in to `/businesspanel`, where they can view analytics, plans, events, and records. They create pending events for admin approval, then manage event updates, registrations, payment records, subscription plans, and social media promotion requests.
-
-### Admin Journey
-
-Admins enter `/adminpanel` to review pending events, approve or reject submissions, inspect analytics, refresh cached metrics, view records, manage plans/users through backend APIs, and handle ad approval workflows. Approval and rejection flows create user notifications.
-
-## Security Features
-
-- Passwords are hashed with bcrypt before being stored.
-- JWT access tokens are signed with the configured `JWT_SECRET`.
-- FastAPI dependencies enforce authentication and role-based access.
-- Admin-only routes are protected through `require_roles("admin")`.
-- Student and business routes are protected through role checks.
-- Self-or-admin profile access prevents users from editing other users.
-- Pydantic schemas validate request data, including email format, password length, event fields, payment amounts, and discussion length.
-- Supabase key validation rejects frontend publishable keys for backend usage.
-- The frontend protects routes and automatically clears session storage on `401` responses.
-- Supabase schema includes foreign keys, check constraints, unique constraints, and update triggers.
-
-## Testing
-
-The backend includes Pytest tests in `Vivent-Backend/tests/`. Tests use FastAPI `TestClient` and a fake in-memory Supabase implementation, so major API behavior can be tested without a live Supabase project.
-
-Run tests with:
+Run:
 
 ```bash
 cd Vivent-Backend
-pytest
+python -m pytest
 ```
 
-Existing tests cover:
+Frontend has ESLint configured but no automated React test suite.
 
-- Authentication, users, and plans smoke flows.
-- Event creation, admin approval, registration, payments, discussions, and ads.
-- Notifications, analytics, and records.
-- Negative access-control cases.
-- Analytics cache creation, refresh, and day slicing.
-- AI description generation and AI admin insights.
-- Mock social OAuth account linking and unlinking.
-- Mock Stripe checkout session, portal, webhook, and duplicate webhook handling.
+## Troubleshooting
 
-No coverage report configuration is included in the repository.
-
-## Future Enhancements
-
-- Replace mock Stripe and mock social OAuth with production integrations.
-- Add email notifications, CV uploads through Supabase Storage, and richer admin user-management screens.
-- Add event search, deployment configuration, PWA support, and event recommendations.
-
-## Contributors
-
-| Name | Role |
+| Issue | Fix |
 | --- | --- |
-| Your Name | Project Lead / Full-Stack Developer |
-| Contributor Name | Backend Developer |
-| Contributor Name | Frontend Developer |
-| Supervisor Name | Project Supervisor |
+| Backend fails during import with Supabase config error | Set `SUPABASE_URL` and a backend secret/service-role key in `Vivent-Backend/.env`. |
+| Supabase key is rejected | Use `SUPABASE_SECRET_KEY` or a service-role key, not an `sb_publishable` key. |
+| Supabase permission errors | Apply the grants and RLS policies from `schema.sql`. |
+| Frontend cannot call the API | Start FastAPI at `http://127.0.0.1:8000` or edit `BASE_URL` in `src/utils/api.js`. |
+| Food or educational registration fails | Purchase a completed ticket first, then register. |
+| Job fair payment fails before registration | Register for the job fair first, then pay if needed. |
+| Admin panel redirects | Use a valid admin JWT; the frontend verifies role through `GET /auth/me`. |
+
+## Contribution Notes
+
+- Keep backend business rules in routers/helpers and validate inputs with schemas.
+- Keep frontend backend calls inside `src/utils/api.js`.
+- Update [Vivent-Backend/schema.sql](./Vivent-Backend/schema.sql) whenever database tables, constraints, RLS policies, or grants change.
+- Update all project README files when routes, env vars, commands, or user flows change.
+- Do not commit real secrets or frontend publishable keys as backend keys.
 
 ## License
 
-This project is licensed under the MIT License. Add the full license text to a dedicated `LICENSE` file before public release.
+No `LICENSE` file is currently present in this repository. Add a license file before publishing or distributing the project.
