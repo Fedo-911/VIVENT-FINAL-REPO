@@ -241,6 +241,10 @@ def seed_events(admin_id: str, plans: list[dict], business_ids: list[str]) -> li
             print(f"  Event '{title}' already exists.")
             event_ids.append(existing.data[0]["id"])
             continue
+        existing_pending = supabase.table("pending_events").select("id").eq("title", title).execute()
+        if existing_pending.data:
+            print(f"  Pending event '{title}' already exists.")
+            continue
 
         # Choose a random business creator
         creator_id = random.choice(business_ids)
@@ -248,8 +252,7 @@ def seed_events(admin_id: str, plans: list[dict], business_ids: list[str]) -> li
         plan = random.choice(plans)
         plan_id = plan["id"]
 
-        # Mix the statuses (Approved, Completed, Pending)
-        # approved events can be completed if set in the past
+        # Mix public events with pending submissions.
         status = "approved" if idx % 3 != 0 else ("pending" if idx % 2 == 0 else "completed")
 
         start_date = f"2026-12-{idx+1:02d}T10:00:00+00:00"
@@ -272,12 +275,16 @@ def seed_events(admin_id: str, plans: list[dict], business_ids: list[str]) -> li
             "updated_at": utc_now_iso()
         }
 
+        target_table = "pending_events" if status == "pending" else "events"
         if status in ("approved", "completed"):
             event_data["approved_by"] = admin_id
+        else:
+            event_data["approved_by"] = None
 
-        inserted = supabase.table("events").insert(event_data).execute()
+        inserted = supabase.table(target_table).insert(event_data).execute()
         print(f"  Seeded Event ({event['category'].upper()}): '{title}' [Status: {status}]")
-        event_ids.append(inserted.data[0]["id"])
+        if status in ("approved", "completed"):
+            event_ids.append(inserted.data[0]["id"])
 
     return event_ids
 

@@ -12,7 +12,8 @@ from fastapi import HTTPException
 from supabase_client import supabase
 
 VALID_EVENT_CATEGORIES = {"educational", "expo", "food", "job_fair"}
-VALID_EVENT_STATUSES = {"pending", "approved", "rejected", "completed"}
+VALID_EVENT_STATUSES = {"approved", "completed"}
+VALID_PENDING_EVENT_STATUSES = {"pending"}
 VALID_PLAN_NAMES = {"Basic", "Normal", "Premium"}
 VALID_ROLES = {"admin", "student", "business"}
 VALID_PAYMENT_STATUSES = {"pending", "completed", "failed"}
@@ -123,6 +124,12 @@ def validate_event_status(status: str) -> None:
     """Validate an event status."""
     if status not in VALID_EVENT_STATUSES:
         raise HTTPException(status_code=400, detail="Invalid event status.")
+
+
+def validate_pending_event_status(status: str) -> None:
+    """Validate a pending event status."""
+    if status not in VALID_PENDING_EVENT_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid pending event status.")
 
 
 def validate_plan_name(name: str) -> None:

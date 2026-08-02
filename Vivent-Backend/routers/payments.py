@@ -2,17 +2,39 @@
 
 from __future__ import annotations
 
+import html
+import json
 from decimal import Decimal
+from urllib.parse import quote
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
-from dependencies import get_current_user
+from dependencies import get_current_user, require_admin, require_roles
 from schemas import PaymentInitiate, PaymentOut, StripeSessionCreate, StripeSessionOut
 from supabase_client import supabase
 from utils.helpers import create_notification, generate_transaction_id, get_row_or_404, utc_now_iso
 
 router = APIRouter(prefix="/payments", tags=["payments"])
+
+TICKET_FIRST_CATEGORIES = {"food", "educational"}
+
+
+def _is_ticket_first_event(event: dict) -> bool:
+    return event.get("category") in TICKET_FIRST_CATEGORIES
+
+
+def _completed_payment_for_user(event_id: str, user_id: str) -> dict | None:
+    response = (
+        supabase.table("payments")
+        .select("*")
+        .eq("event_id", event_id)
+        .eq("user_id", user_id)
+        .eq("status", "completed")
+        .limit(1)
+        .execute()
+    )
+    return response.data[0] if response.data else None
 
 
 @router.post("/initiate", response_model=PaymentOut, status_code=status.HTTP_201_CREATED)
@@ -28,7 +50,15 @@ def initiate_payment(payload: PaymentInitiate, current_user: dict = Depends(get_
         .execute()
     )
     registration = registration_response.data[0] if registration_response.data else None
-    if not registration and current_user["role"] != "admin" and event["created_by"] != current_user["id"]:
+    is_ticket_first_event = _is_ticket_first_event(event)
+    if _completed_payment_for_user(payload.event_id, current_user["id"]):
+        raise HTTPException(status_code=400, detail="You have already purchased a ticket for this event.")
+    if (
+        not registration
+        and not is_ticket_first_event
+        and current_user["role"] != "admin"
+        and event["created_by"] != current_user["id"]
+    ):
         raise HTTPException(status_code=400, detail="Register for the event before making a payment.")
 
     payment_data = {
@@ -74,6 +104,20 @@ def list_user_payments(current_user: dict = Depends(get_current_user)) -> list[d
     return response.data or []
 
 
+@router.get("/my-payments", response_model=list[PaymentOut])
+def list_my_payments(current_user: dict = Depends(get_current_user)) -> list[dict]:
+    """List current user payments using the frontend API alias."""
+    return list_user_payments(current_user)
+
+
+@router.get("/admin/all", response_model=list[PaymentOut])
+def list_all_payments(current_user: dict = Depends(require_admin)) -> list[dict]:
+    """List all payments — admin only."""
+    _ = current_user
+    response = supabase.table("payments").select("*").order("created_at", desc=True).execute()
+    return response.data or []
+
+
 @router.get("/event/{event_id}", response_model=list[PaymentOut])
 def list_event_payments(event_id: str, current_user: dict = Depends(get_current_user)) -> list[dict]:
     """List payments for an event for organisers or admins."""
@@ -93,7 +137,7 @@ def create_stripe_checkout_session(
     """Create a mock Stripe Checkout Session."""
     event = get_row_or_404("events", payload.event_id)
     
-    # Check registration
+    # Check registration. Food and educational events sell the ticket first.
     reg_res = (
         supabase.table("event_registrations")
         .select("*")
@@ -103,12 +147,25 @@ def create_stripe_checkout_session(
         .execute()
     )
     registration = reg_res.data[0] if reg_res.data else None
-    if not registration and current_user["role"] != "admin" and event["created_by"] != current_user["id"]:
+    is_ticket_first_event = _is_ticket_first_event(event)
+    if _completed_payment_for_user(payload.event_id, current_user["id"]):
+        raise HTTPException(status_code=400, detail="You have already purchased a ticket for this event.")
+    if (
+        not registration
+        and not is_ticket_first_event
+        and current_user["role"] != "admin"
+        and event["created_by"] != current_user["id"]
+    ):
         raise HTTPException(status_code=400, detail="Register for the event before making a payment.")
 
-    # Determine event price based on plans
-    plan_res = supabase.table("plans").select("price").eq("id", event["plan_id"]).limit(1).execute()
-    price = float(plan_res.data[0]["price"]) if plan_res.data else 99.0
+    # Prefer ticket pricing from the event, then fall back to the event's plan price.
+    ticket_price = (event.get("venue_details") or {}).get("ticket_price")
+    if ticket_price and float(ticket_price) > 0:
+        price = float(ticket_price)
+    else:
+        plan_id = event.get("plan_id")
+        plan_res = supabase.table("plans").select("price").eq("id", plan_id).limit(1).execute() if plan_id else None
+        price = float(plan_res.data[0]["price"]) if plan_res and plan_res.data else 99.0
     
     session_id = f"cs_test_{uuid4().hex}"
     
@@ -122,6 +179,8 @@ def create_stripe_checkout_session(
         f"&event_id={payload.event_id}"
         f"&amount={price}"
         f"&reg_id={reg_id}"
+        f"&success_url={quote(payload.success_url or '/', safe='')}"
+        f"&cancel_url={quote(payload.cancel_url or '/', safe='')}"
     )
     
     return {
@@ -138,12 +197,15 @@ def get_mock_checkout_portal(
     user_id: str,
     event_id: str,
     amount: float,
-    reg_id: str = ""
+    reg_id: str = "",
+    success_url: str = "/",
+    cancel_url: str = "/",
 ) -> HTMLResponse:
     """Serve a beautifully styled interactive mock Stripe Checkout portal."""
     event = get_row_or_404("events", event_id)
-    title = event.get("title", "VIVENT Event Registration")
-    description = event.get("description", "Premium Event Access Fee")
+    title = html.escape(event.get("title", "VIVENT Event Registration"))
+    description = html.escape(event.get("description", "Premium Event Access Fee"))
+    success_url_json = json.dumps(success_url or "/")
     
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -354,7 +416,7 @@ def get_mock_checkout_portal(
                 <div class="stripe-logo" style="margin-top: 5px;">STRIPE CHECKOUT SIMULATOR</div>
             </div>
             <div>
-                <p style="text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6;">Event Registration Fee</p>
+                <p style="text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6;">Event Ticket</p>
                 <div class="price">${amount:.2f}</div>
                 <div class="event-details">
                     <p style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">{title}</p>
@@ -395,7 +457,7 @@ def get_mock_checkout_portal(
         <div class="success-overlay" id="success-screen">
             <div class="success-checkmark">✓</div>
             <div class="success-title">Payment Completed</div>
-            <div class="success-text">Your registration is now fully approved! Redirecting back to your event feed...</div>
+            <div class="success-text">Your ticket has been purchased. Redirecting back to your event feed...</div>
         </div>
     </div>
 
@@ -445,8 +507,7 @@ def get_mock_checkout_portal(
                     setTimeout(() => {{
                         successScreen.style.opacity = "1";
                         setTimeout(() => {{
-                            // Redirect back dynamically
-                            window.location.href = "/";
+                            window.location.href = {success_url_json};
                         }}, 2000);
                     }}, 1000);
                 }} else {{
@@ -494,6 +555,10 @@ def stripe_webhook(payload: dict) -> dict:
     existing_payment = supabase.table("payments").select("id").eq("transaction_id", session_id).execute()
     if existing_payment.data:
         return {"status": "skipped", "reason": "Transaction already processed."}
+
+    existing_ticket = _completed_payment_for_user(event_id, user_id)
+    if existing_ticket:
+        return {"status": "skipped", "reason": "Ticket already purchased for this event."}
         
     # Write payment ledger
     payment_data = {
@@ -525,4 +590,3 @@ def stripe_webhook(payload: dict) -> dict:
     )
     
     return {"status": "success", "payment_id": payment["id"]}
-

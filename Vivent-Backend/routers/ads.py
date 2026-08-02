@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from dependencies import get_current_user, require_roles
+from dependencies import get_current_user, require_admin, require_roles
 from schemas import AdApprovalRequest, AdRequestCreate, SocialMediaAdOut
 from supabase_client import supabase
 from utils.helpers import (
@@ -42,8 +42,8 @@ def request_ad(
 
 
 @router.get("/ads/requests", response_model=list[SocialMediaAdOut])
-def list_ad_requests(current_user: dict = Depends(require_roles("admin"))) -> list[dict]:
-    """List all ad requests for admins."""
+def list_ad_requests(current_user: dict = Depends(require_admin)) -> list[dict]:
+    """List all ad requests — admin only."""
     _ = current_user
     response = supabase.table("social_media_ads").select("*").order("created_at", desc=True).execute()
     return response.data or []
@@ -53,9 +53,9 @@ def list_ad_requests(current_user: dict = Depends(require_roles("admin"))) -> li
 def approve_ad(
     ad_id: str,
     payload: AdApprovalRequest,
-    current_user: dict = Depends(require_roles("admin")),
+    current_user: dict = Depends(require_admin),
 ) -> dict:
-    """Approve an ad request. Auto-publishes to linked social feeds if available."""
+    """Approve an ad request — admin only. Auto-publishes to linked social feeds if available."""
     _ = current_user
     ad = get_row_or_404("social_media_ads", ad_id)
     update = {"status": "approved", "admin_notes": payload.admin_notes, "updated_at": utc_now_iso()}
@@ -143,9 +143,9 @@ def _simulate_social_publishing(ad: dict) -> list[dict]:
 def reject_ad(
     ad_id: str,
     payload: AdApprovalRequest,
-    current_user: dict = Depends(require_roles("admin")),
+    current_user: dict = Depends(require_admin),
 ) -> dict:
-    """Reject an ad request."""
+    """Reject an ad request — admin only."""
     _ = current_user
     ad = get_row_or_404("social_media_ads", ad_id)
     if not payload.admin_notes:

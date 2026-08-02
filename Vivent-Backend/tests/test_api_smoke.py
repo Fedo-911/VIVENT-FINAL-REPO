@@ -81,20 +81,28 @@ def test_events_admin_registration_payment_discussion_and_ads_smoke(client, toke
     )
     assert create_event.status_code == 201
     event_id = create_event.json()['id']
+    assert create_event.json()['status'] == 'pending'
 
     response = client.get('/events')
     assert response.status_code == 200
     assert response.json()['total'] >= 1
+    assert all(item['status'] == 'approved' for item in response.json()['items'])
+    assert all(item['id'] != event_id for item in response.json()['items'])
 
     response = client.get(f'/events/{event_id}')
-    assert response.status_code == 200
+    assert response.status_code == 404
 
     response = client.get('/admin/events/pending', headers=auth_header(tokens['admin']))
     assert response.status_code == 200
+    assert any(item['id'] == event_id for item in response.json())
 
     response = client.put(f'/admin/events/{event_id}/approve', headers=auth_header(tokens['admin']))
     assert response.status_code == 200
     assert response.json()['status'] == 'approved'
+    assert all(item['id'] != event_id for item in client.get('/admin/events/pending', headers=auth_header(tokens['admin'])).json())
+
+    response = client.get(f'/events/{event_id}')
+    assert response.status_code == 200
 
     response = client.post(
         f'/events/{event_id}/register',
@@ -156,6 +164,51 @@ def test_events_admin_registration_payment_discussion_and_ads_smoke(client, toke
     assert response.json()['status'] == 'approved'
 
 
+def test_rejected_event_never_enters_public_events(client, tokens):
+    plans_response = client.get('/plans')
+    plan_id = plans_response.json()[0]['id']
+
+    create_event = client.post(
+        '/events',
+        headers=auth_header(tokens['business']),
+        json={
+            'title': 'Rejected Event',
+            'description': 'Event submitted during rejection workflow tests.',
+            'category': 'food',
+            'start_date': '2026-07-01T10:00:00+00:00',
+            'end_date': '2026-07-01T12:00:00+00:00',
+            'location': 'Karachi',
+            'venue_details': {'hall': 'B2'},
+            'plan_id': plan_id,
+            'max_participants': 40,
+        },
+    )
+    assert create_event.status_code == 201
+    event_id = create_event.json()['id']
+
+    assert any(
+        item['id'] == event_id
+        for item in client.get('/admin/events/pending', headers=auth_header(tokens['admin'])).json()
+    )
+
+    reject = client.put(
+        f'/admin/events/{event_id}/reject',
+        headers=auth_header(tokens['admin']),
+        json={'detail': 'Missing venue confirmation.'},
+    )
+    assert reject.status_code == 200
+    assert reject.json()['status'] == 'rejected'
+
+    public_list = client.get('/events')
+    assert public_list.status_code == 200
+    assert all(item['id'] != event_id for item in public_list.json()['items'])
+    assert client.get(f'/events/{event_id}').status_code == 404
+    assert all(
+        item['id'] != event_id
+        for item in client.get('/admin/events/pending', headers=auth_header(tokens['admin'])).json()
+    )
+
+
 def test_meetings_notifications_analytics_and_records_smoke(client, tokens):
     seeded_event_id = '66666666-6666-6666-6666-666666666666'
     student_id = '22222222-2222-2222-2222-222222222222'
@@ -201,6 +254,15 @@ def test_negative_access_control_smoke(client, tokens):
     response = client.get('/users', headers=auth_header(tokens['student']))
     assert response.status_code == 403
 
+    response = client.get('/admin/events/pending', headers=auth_header(tokens['student']))
+    assert response.status_code == 403
+
+    response = client.get('/analytics/admin/dashboard', headers=auth_header(tokens['business']))
+    assert response.status_code == 403
+
+    response = client.get('/payments/admin/all', headers=auth_header(tokens['student']))
+    assert response.status_code == 403
+
     response = client.get('/notifications')
     assert response.status_code == 401
 
@@ -214,3 +276,40 @@ def test_negative_access_control_smoke(client, tokens):
         },
     )
     assert response.status_code == 400
+
+
+def test_public_auth_does_not_issue_admin_sessions(client):
+    admin_login = client.post(
+        '/auth/login',
+        json={'email': 'admin@vivent.com', 'password': 'Admin123!'},
+    )
+    assert admin_login.status_code == 403
+    assert 'public login endpoint' in admin_login.json()['detail']
+    assert 'Admin' not in admin_login.json()['detail']
+    assert 'admin' not in admin_login.json()['detail']
+
+    admin_register = client.post(
+        '/auth/register',
+        json={
+            'email': 'browser-admin@example.com',
+            'password': 'Admin123!',
+            'full_name': 'Browser Admin',
+            'role': 'admin',
+        },
+    )
+    assert admin_register.status_code == 422
+
+    student_login = client.post(
+        '/auth/login',
+        json={'email': 'student@example.com', 'password': 'Student123!'},
+    )
+    assert student_login.status_code == 200
+    assert student_login.json()['user']['role'] == 'student'
+
+
+def test_supabase_auth_admin_token_can_access_admin_api(client):
+    response = client.get('/admin/events/pending', headers=auth_header('supabase-admin-token'))
+    assert response.status_code == 200
+
+    response = client.get('/admin/events/pending', headers=auth_header('supabase-student-token'))
+    assert response.status_code == 403

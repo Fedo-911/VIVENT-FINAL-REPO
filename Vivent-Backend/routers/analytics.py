@@ -7,7 +7,7 @@ from collections import Counter, defaultdict
 from decimal import Decimal
 from fastapi import APIRouter, Depends
 
-from dependencies import get_current_user, require_roles
+from dependencies import get_current_user, require_admin, require_roles
 from schemas import AdminDashboardResponse, BusinessDashboardResponse, StudentDashboardResponse
 from supabase_client import supabase
 from utils.cache_worker import (
@@ -55,9 +55,9 @@ def _slice_chart_data(metrics: dict | None, days: int) -> dict | None:
 def admin_dashboard(
     days: int = 7,
     force_refresh: bool = False,
-    current_user: dict = Depends(require_roles("admin")),
+    current_user: dict = Depends(require_admin),
 ) -> dict:
-    """Return aggregated metrics for the admin dashboard, using the pre-computed analytics cache."""
+    """Return aggregated metrics for the admin dashboard — admin only."""
     _ = current_user
     
     if not force_refresh:
@@ -77,9 +77,9 @@ def admin_dashboard(
 @router.post("/admin/dashboard/refresh", response_model=AdminDashboardResponse)
 def refresh_admin_dashboard(
     days: int = 7,
-    current_user: dict = Depends(require_roles("admin")),
+    current_user: dict = Depends(require_admin),
 ) -> dict:
-    """Force re-compute and update the analytics cache for the admin dashboard, returning fresh metrics."""
+    """Force re-compute and update the analytics cache — admin only."""
     _ = current_user
     metrics = compute_and_cache_admin_metrics()
     if not metrics:
@@ -114,6 +114,15 @@ def business_dashboard(current_user: dict = Depends(require_roles("business"))) 
         supabase.table("events").select("*").eq("created_by", current_user["id"]).order("created_at", desc=True).execute().data
         or []
     )
+    pending_events = (
+        supabase.table("pending_events")
+        .select("*")
+        .eq("created_by", current_user["id"])
+        .order("created_at", desc=True)
+        .execute()
+        .data
+        or []
+    )
     event_ids = [event["id"] for event in events]
     registrations = (
         supabase.table("event_registrations").select("*").in_("event_id", event_ids).execute().data if event_ids else []
@@ -137,7 +146,7 @@ def business_dashboard(current_user: dict = Depends(require_roles("business"))) 
         for event in events
     ]
     return BusinessDashboardResponse(
-        my_created_events=events,
+        my_created_events=pending_events + events,
         registration_count_per_event=registration_count_per_event,
         revenue_per_event=revenue_per_event,
     )
@@ -145,9 +154,9 @@ def business_dashboard(current_user: dict = Depends(require_roles("business"))) 
 
 @router.post("/admin/ai/insights", tags=["ai"])
 def ai_admin_insights(
-    current_user: dict = Depends(require_roles("admin")),
+    current_user: dict = Depends(require_admin),
 ) -> dict:
-    """Generate AI-powered business insights from live platform metrics.
+    """Generate AI-powered business insights from live platform metrics — admin only.
 
     Uses Google Gemini when GEMINI_API_KEY is set, otherwise falls back to
     a rich local analytical engine producing professional markdown reports.

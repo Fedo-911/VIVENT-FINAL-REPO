@@ -115,3 +115,79 @@ def test_stripe_session_creation_validation(client, tokens):
         json={'event_id': event_id}
     )
     assert res_unauth.status_code == 401
+
+
+def test_food_event_requires_ticket_before_registration(client, tokens, fake_supabase):
+    event_id = '66666666-6666-6666-6666-666666666666'
+    student_id = '22222222-2222-2222-2222-222222222222'
+    fake_supabase.db['events'][0]['category'] = 'food'
+    fake_supabase.db['events'][0]['venue_details'] = {'ticket_price': 150}
+
+    blocked_registration = client.post(
+        f'/events/{event_id}/register',
+        headers=auth_header(tokens['student']),
+        json={'role_at_event': 'participant'},
+    )
+    assert blocked_registration.status_code == 400
+    assert 'Please purchase a ticket before registering for this event.' in blocked_registration.json()['detail']
+
+    session_response = client.post(
+        '/payments/stripe/create-checkout-session',
+        headers=auth_header(tokens['student']),
+        json={'event_id': event_id},
+    )
+    assert session_response.status_code == 201
+    session_data = session_response.json()
+    assert float(session_data['amount']) == 150.0
+
+    webhook_response = client.post(
+        '/payments/stripe/webhook',
+        json={
+            'type': 'checkout.session.completed',
+            'data': {
+                'object': {
+                    'id': session_data['session_id'],
+                    'amount_total': 15000,
+                    'payment_status': 'paid',
+                    'metadata': {
+                        'user_id': student_id,
+                        'event_id': event_id,
+                        'reg_id': '',
+                    },
+                }
+            },
+        },
+    )
+    assert webhook_response.status_code == 200
+    assert webhook_response.json()['status'] == 'success'
+    assert len(fake_supabase.db['payments']) == 1
+
+    registration_response = client.post(
+        f'/events/{event_id}/register',
+        headers=auth_header(tokens['student']),
+        json={'role_at_event': 'participant'},
+    )
+    assert registration_response.status_code == 201
+    registration = registration_response.json()
+    assert registration['payment_status'] == 'completed'
+    assert registration['payment_id'] == fake_supabase.db['payments'][0]['id']
+
+    duplicate_registration = client.post(
+        f'/events/{event_id}/register',
+        headers=auth_header(tokens['student']),
+        json={'role_at_event': 'participant'},
+    )
+    assert duplicate_registration.status_code == 400
+    assert 'already registered' in duplicate_registration.json()['detail']
+
+    duplicate_ticket = client.post(
+        '/payments/stripe/create-checkout-session',
+        headers=auth_header(tokens['student']),
+        json={'event_id': event_id},
+    )
+    assert duplicate_ticket.status_code == 400
+    assert 'already purchased a ticket' in duplicate_ticket.json()['detail']
+
+    my_registrations = client.get('/registrations/my', headers=auth_header(tokens['student']))
+    assert my_registrations.status_code == 200
+    assert my_registrations.json()[0]['event_id'] == event_id

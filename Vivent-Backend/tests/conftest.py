@@ -4,6 +4,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
@@ -132,10 +133,29 @@ class FakeQuery:
 class FakeSupabase:
     def __init__(self, seed_data: dict[str, list[dict[str, Any]]]):
         self.db = deepcopy(seed_data)
+        self.auth = FakeSupabaseAuth()
 
     def table(self, table_name: str) -> FakeQuery:
         self.db.setdefault(table_name, [])
         return FakeQuery(self.db, table_name)
+
+
+class FakeSupabaseAuth:
+    def get_user(self, token: str) -> SimpleNamespace:
+        users_by_token = {
+            'supabase-admin-token': SimpleNamespace(
+                id='11111111-1111-1111-1111-111111111111',
+                email='admin@vivent.com',
+            ),
+            'supabase-student-token': SimpleNamespace(
+                id='22222222-2222-2222-2222-222222222222',
+                email='student@example.com',
+            ),
+        }
+        user = users_by_token.get(token)
+        if user is None:
+            raise ValueError('Invalid Supabase Auth token.')
+        return SimpleNamespace(user=user)
 
 
 @pytest.fixture
@@ -226,6 +246,7 @@ def seeded_data() -> dict[str, list[dict[str, Any]]]:
                 'updated_at': ts(-4),
             },
         ],
+        'pending_events': [],
         'event_registrations': [],
         'payments': [],
         'discussions': [],

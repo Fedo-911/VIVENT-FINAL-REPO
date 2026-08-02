@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from dependencies import require_roles
+from dependencies import require_admin
 from schemas import MessageResponse, PlanCreate, PlanOut, PlanUpdate
 from supabase_client import supabase
 from utils.helpers import get_row_or_404, utc_now_iso, validate_plan_name
@@ -26,8 +26,8 @@ def list_active_plans() -> list[dict]:
 
 
 @router.post("", response_model=PlanOut, status_code=status.HTTP_201_CREATED)
-def create_plan(payload: PlanCreate, current_user: dict = Depends(require_roles("admin"))) -> dict:
-    """Create a new pricing plan."""
+def create_plan(payload: PlanCreate, current_user: dict = Depends(require_admin)) -> dict:
+    """Create a new pricing plan — admin only."""
     _ = current_user
     validate_plan_name(payload.name)
     existing = supabase.table("plans").select("id").eq("name", payload.name).limit(1).execute()
@@ -46,9 +46,9 @@ def create_plan(payload: PlanCreate, current_user: dict = Depends(require_roles(
 def update_plan(
     plan_id: str,
     payload: PlanUpdate,
-    current_user: dict = Depends(require_roles("admin")),
+    current_user: dict = Depends(require_admin),
 ) -> dict:
-    """Update an existing plan."""
+    """Update an existing plan — admin only."""
     _ = current_user
     get_row_or_404("plans", plan_id)
     update_data = payload.model_dump(exclude_unset=True)
@@ -64,8 +64,8 @@ def update_plan(
 
 
 @router.delete("/{plan_id}", response_model=MessageResponse)
-def delete_plan(plan_id: str, current_user: dict = Depends(require_roles("admin"))) -> MessageResponse:
-    """Soft-delete a plan by marking it inactive."""
+def delete_plan(plan_id: str, current_user: dict = Depends(require_admin)) -> MessageResponse:
+    """Soft-delete a plan by marking it inactive — admin only."""
     _ = current_user
     get_row_or_404("plans", plan_id)
     supabase.table("plans").update({"is_active": False, "updated_at": utc_now_iso()}).eq("id", plan_id).execute()

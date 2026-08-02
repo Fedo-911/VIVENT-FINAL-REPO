@@ -30,11 +30,12 @@ def _to_date(value: str) -> datetime:
 def compute_live_admin_metrics() -> dict:
     """Query live tables and calculate admin dashboard aggregates."""
     events = supabase.table("events").select("*").execute().data or []
+    pending_events = supabase.table("pending_events").select("*").execute().data or []
     payments = supabase.table("payments").select("*").execute().data or []
     registrations = supabase.table("event_registrations").select("*").execute().data or []
 
-    status_counts = Counter(event["status"] for event in events)
-    category_counts = Counter(event["category"] for event in events)
+    status_counts = Counter(event["status"] for event in events + pending_events)
+    category_counts = Counter(event["category"] for event in events + pending_events)
     total_revenue = sum(Decimal(str(payment["amount"])) for payment in payments if payment["status"] == "completed")
 
     registration_counter = Counter(reg["event_id"] for reg in registrations)
@@ -53,7 +54,7 @@ def compute_live_admin_metrics() -> dict:
     registration_points: dict[str, int] = defaultdict(int)
     revenue_points: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
 
-    for event in events:
+    for event in events + pending_events:
         event_date = _to_date(event["created_at"]).date()
         if event_date >= start_day:
             event_points[event_date.isoformat()] += 1

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from dependencies import get_current_user, require_roles
@@ -18,6 +20,17 @@ from utils.helpers import (
 )
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+
+def _get_event_for_update_or_delete(event_id: str) -> tuple[str, dict[str, Any]]:
+    """Fetch an approved event first, then a pending submission."""
+    event_response = supabase.table("events").select("*").eq("id", event_id).limit(1).execute()
+    if event_response.data:
+        return "events", event_response.data[0]
+    pending_response = supabase.table("pending_events").select("*").eq("id", event_id).limit(1).execute()
+    if pending_response.data:
+        return "pending_events", pending_response.data[0]
+    raise HTTPException(status_code=404, detail="Event not found.")
 
 
 @router.post("/ai/generate-description", status_code=200, tags=["ai"])
@@ -54,7 +67,7 @@ def create_event(
     payload: EventCreate,
     current_user: dict = Depends(require_roles("student", "business")),
 ) -> dict:
-    """Create a new event in pending state."""
+    """Create a new event submission in pending state."""
     validate_event_category(payload.category)
     ensure_plan_active(payload.plan_id)
     if parse_datetime(payload.end_date) <= parse_datetime(payload.start_date):
@@ -71,7 +84,7 @@ def create_event(
             "updated_at": utc_now_iso(),
         }
     )
-    response = supabase.table("events").insert(event_data).execute()
+    response = supabase.table("pending_events").insert(event_data).execute()
     return response.data[0]
 
 
@@ -85,7 +98,7 @@ def list_events(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
 ) -> EventListResponse:
-    """List events with filters and pagination."""
+    """List public approved events with filters and pagination."""
     query = supabase.table("events").select("*", count="exact")
     if category:
         validate_event_category(category)
@@ -93,6 +106,8 @@ def list_events(
     if status_filter:
         validate_event_status(status_filter)
         query = query.eq("status", status_filter)
+    else:
+        query = query.eq("status", "approved")
     if start_date:
         query = query.gte("start_date", start_date)
     if end_date:
@@ -109,8 +124,10 @@ def list_events(
 
 @router.get("/{event_id}", response_model=EventOut)
 def get_event(event_id: str) -> dict:
-    """Get event details plus discussion and registration counts."""
+    """Get public approved event details plus discussion and registration counts."""
     event = get_row_or_404("events", event_id)
+    if event.get("status") != "approved":
+        raise HTTPException(status_code=404, detail="Event not found.")
     discussions_count = (
         supabase.table("discussions").select("id", count="exact").eq("event_id", event_id).execute().count or 0
     )
@@ -133,16 +150,18 @@ def update_event(
     payload: EventUpdate,
     current_user: dict = Depends(get_current_user),
 ) -> dict:
-    """Update an event for creator or admin."""
-    event = get_row_or_404("events", event_id)
+    """Update an approved event or a creator-owned pending submission."""
+    table_name, event = _get_event_for_update_or_delete(event_id)
     ensure_event_access(current_user, event)
     update_data = payload.model_dump(exclude_unset=True)
     if "category" in update_data:
         validate_event_category(update_data["category"])
     if "status" in update_data:
         validate_event_status(update_data["status"])
-        if current_user.get("role") != "admin" and update_data["status"] in {"approved", "rejected"}:
-            raise HTTPException(status_code=403, detail="Only admins can approve or reject events.")
+        if table_name == "pending_events":
+            raise HTTPException(status_code=400, detail="Pending events must be approved through admin moderation.")
+        if current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Only admins can change event status.")
     if "plan_id" in update_data:
         ensure_plan_active(update_data["plan_id"])
     if not update_data:
@@ -153,14 +172,14 @@ def update_event(
         if parse_datetime(new_end) <= parse_datetime(new_start):
             raise HTTPException(status_code=400, detail="Event end date must be after start date.")
     update_data["updated_at"] = utc_now_iso()
-    response = supabase.table("events").update(update_data).eq("id", event_id).execute()
+    response = supabase.table(table_name).update(update_data).eq("id", event_id).execute()
     return response.data[0]
 
 
 @router.delete("/{event_id}", response_model=MessageResponse)
 def delete_event(event_id: str, current_user: dict = Depends(get_current_user)) -> MessageResponse:
-    """Delete an event for creator or admin."""
-    event = get_row_or_404("events", event_id)
+    """Delete an approved event or a creator-owned pending submission."""
+    table_name, event = _get_event_for_update_or_delete(event_id)
     ensure_event_access(current_user, event)
-    supabase.table("events").delete().eq("id", event_id).execute()
+    supabase.table(table_name).delete().eq("id", event_id).execute()
     return MessageResponse(detail="Event deleted successfully.")
