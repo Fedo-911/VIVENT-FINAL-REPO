@@ -38,7 +38,7 @@ export const About = () => {
             <p className="text-blue-100 text-lg leading-relaxed mb-8 max-w-2xl">
               VIVENT is a premium web-based event management system designed to
               simplify event planning, promotion, and management for students,
-              businesses, and administrators. Our platform helps users manage
+              students and businesses. Our platform helps users manage
               events efficiently with modern dashboards and social media
               integrations.
             </p>
@@ -98,7 +98,7 @@ export const About = () => {
             {
               icon: <FaUsers />,
               title: "User Dashboards",
-              desc: "Dedicated dashboards for admins, students, and business owners.",
+              desc: "Dedicated dashboards for students and business owners.",
             },
             {
               icon: <FaGlobe />,

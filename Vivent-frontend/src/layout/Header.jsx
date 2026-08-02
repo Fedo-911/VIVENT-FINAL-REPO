@@ -1,11 +1,37 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaChevronDown, FaBell, FaUserCircle, FaUserShield, FaUserGraduate, FaStore } from "react-icons/fa";
+import { FaChevronDown, FaBell, FaUserCircle, FaUserGraduate, FaStore } from "react-icons/fa";
 
-const Header = ({ isAuthenticated, onLogout }) => {
+const dashboardByRole = {
+  student: {
+    label: "Student Panel",
+    path: "/studentpanel",
+    icon: FaUserGraduate,
+    iconClass: "text-green-200",
+  },
+  business: {
+    label: "Business Panel",
+    path: "/businesspanel",
+    icon: FaStore,
+    iconClass: "text-orange-200",
+  },
+};
+
+const readCurrentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("viventUser") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const Header = ({ isAuthenticated, currentRole, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const navigate = useNavigate();
+  const currentUser = readCurrentUser();
+  const activeRole = currentRole || currentUser.role || "";
+  const dashboard = dashboardByRole[activeRole];
 
   const notifications = [
     "Event pages are connected to the dashboard.",
@@ -131,62 +157,44 @@ const Header = ({ isAuthenticated, onLogout }) => {
                 )}
               </div>
 
-              <div className="relative">
-                <button
-                  className="inline-flex h-10 w-20 items-center justify-center gap-1 rounded-xl bg-blue-800 text-white shadow-lg transition hover:bg-blue-900"
-                  onClick={() =>
-                    setOpenDropdown((value) => (value === "profile" ? null : "profile"))
-                  }
-                  type="button"
-                >
-                  <FaUserCircle className="text-xl" />
-                  <FaChevronDown
-                    className={`text-sm transition-transform duration-300 ${
-                      openDropdown === "profile" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+              {isAuthenticated && (
+                <div className="relative">
+                  <button
+                    className="inline-flex h-10 w-20 items-center justify-center gap-1 rounded-xl bg-blue-800 text-white shadow-lg transition hover:bg-blue-900"
+                    onClick={() =>
+                      setOpenDropdown((value) => (value === "profile" ? null : "profile"))
+                    }
+                    type="button"
+                  >
+                    <FaUserCircle className="text-xl" />
+                    <FaChevronDown
+                      className={`text-sm transition-transform duration-300 ${
+                        openDropdown === "profile" ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-                {openDropdown === "profile" && (
-                  <div className="absolute right-0 z-50 mt-4 min-h-[28rem] w-72 overflow-hidden rounded-3xl border border-blue-800 bg-blue-900 shadow-2xl animate-fadeIn">
-                    <div className="border-b border-blue-800 bg-blue-950 p-5">
-                      <h3 className="text-xl font-bold text-white">Profile Menu</h3>
-                      <p className="mt-1 text-sm text-gray-300">
-                        Manage your VIVENT account
-                      </p>
-                    </div>
-
-                    <div className="flex min-h-[calc(28rem-82px)] flex-col justify-between p-4">
-                      <div className="space-y-4">
-                        <Link
-                          className="flex h-14 w-full items-center gap-4 rounded-2xl bg-blue-800 px-5 text-white shadow-lg transition duration-300 hover:scale-105 hover:bg-blue-900"
-                          onClick={closeAll}
-                          to="/adminpanel"
-                        >
-                          <FaUserShield className="text-xl text-pink-200" />
-                          <span className="text-lg font-semibold">Admin Panel</span>
-                        </Link>
-
-                        <Link
-                          className="flex h-14 w-full items-center gap-4 rounded-2xl bg-blue-800 px-5 text-white shadow-lg transition duration-300 hover:scale-105 hover:bg-blue-900"
-                          onClick={closeAll}
-                          to="/studentpanel"
-                        >
-                          <FaUserGraduate className="text-xl text-green-200" />
-                          <span className="text-lg font-semibold">Student Panel</span>
-                        </Link>
-
-                        <Link
-                          className="flex h-14 w-full items-center gap-4 rounded-2xl bg-blue-800 px-5 text-white shadow-lg transition duration-300 hover:scale-105 hover:bg-blue-900"
-                          onClick={closeAll}
-                          to="/businesspanel"
-                        >
-                          <FaStore className="text-xl text-orange-200" />
-                          <span className="text-lg font-semibold">Business Panel</span>
-                        </Link>
+                  {openDropdown === "profile" && (
+                    <div className="absolute right-0 z-50 mt-4 w-72 overflow-hidden rounded-3xl border border-blue-800 bg-blue-900 shadow-2xl animate-fadeIn">
+                      <div className="border-b border-blue-800 bg-blue-950 p-5">
+                        <h3 className="text-xl font-bold text-white">Profile Menu</h3>
+                        <p className="mt-1 text-sm text-gray-300">
+                          {currentUser.full_name || currentUser.email || "Current user"}
+                        </p>
                       </div>
 
-                      {isAuthenticated && (
+                      <div className="flex flex-col gap-4 p-4">
+                        {dashboard && (
+                          <Link
+                            className="flex h-14 w-full items-center gap-4 rounded-2xl bg-blue-800 px-5 text-white shadow-lg transition duration-300 hover:scale-105 hover:bg-blue-900"
+                            onClick={closeAll}
+                            to={dashboard.path}
+                          >
+                            <dashboard.icon className={`text-xl ${dashboard.iconClass}`} />
+                            <span className="text-lg font-semibold">{dashboard.label}</span>
+                          </Link>
+                        )}
+
                         <button
                           className="h-14 w-full rounded-2xl bg-blue-800 px-5 text-lg font-semibold text-white shadow-lg transition duration-300 hover:bg-blue-900"
                           onClick={handleLogout}
@@ -194,11 +202,11 @@ const Header = ({ isAuthenticated, onLogout }) => {
                         >
                           Logout
                         </button>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div

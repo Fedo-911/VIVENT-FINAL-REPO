@@ -28,18 +28,40 @@ const Footer = () => {
             </p>
 
             <div className="flex flex-wrap gap-2.5">
-              {[FaFacebookF, FaTiktok, FaLinkedinIn, FaInstagram].map(
-                (Icon, index) => (
-                  <button
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-slate-100 transition hover:-translate-y-1 hover:bg-white/20 hover:text-white"
-                    key={index}
-                    type="button"
-                  >
-                    <Icon />
-                  </button>
-                )
-              )}
-            </div>
+  {[
+    {
+      icon: FaFacebookF,
+      url: "https://www.facebook.com/share/1Ft32wUfWm/",
+      label: "Facebook",
+    },
+    {
+      icon: FaTiktok,
+      url: "https://www.tiktok.com/@vivent_web",
+      label: "TikTok",
+    },
+    {
+      icon: FaLinkedinIn,
+      url: "https://www.linkedin.com/in/vivent-web",
+      label: "LinkedIn",
+    },
+    {
+      icon: FaInstagram,
+      url: "https://www.instagram.com/vivent_web",
+      label: "Instagram",
+    },
+  ].map(({ icon: Icon, url, label }) => (
+    <a
+      key={label}
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-slate-100 transition hover:-translate-y-1 hover:bg-white/20 hover:text-white"
+    >
+      <Icon />
+    </a>
+  ))}
+</div>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
@@ -77,8 +99,8 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link className="transition hover:text-white" to="/terms-of-services">
-                    Terms of Services
+                  <Link className="transition hover:text-white" to="/terms-of-service">
+                    Terms of Service
                   </Link>
                 </li>
               </ul>
@@ -92,8 +114,8 @@ const Footer = () => {
             <Link className="transition hover:text-white" to="/privacy-policy">
               Privacy Policy
             </Link>
-            <Link className="transition hover:text-white" to="/terms-of-services">
-              Terms of Services
+            <Link className="transition hover:text-white" to="/terms-of-service">
+              Terms of Service
             </Link>
           </div>
         </div>
