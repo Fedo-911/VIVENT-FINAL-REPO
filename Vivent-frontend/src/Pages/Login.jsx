@@ -30,7 +30,9 @@ const Login = ({ onAuth }) => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectPath = location.state?.from?.pathname || "/";
+  const redirectPath = location.state?.from
+    ? `${location.state.from.pathname || "/"}${location.state.from.search || ""}`
+    : "/";
 
   const handleChange = (event) => {
     setFormData((current) => ({
@@ -66,7 +68,7 @@ const Login = ({ onAuth }) => {
       localStorage.setItem("viventUser", JSON.stringify(user));
 
       onAuth(role);
-      navigate(rolePath(role) || redirectPath, { replace: true });
+      navigate(redirectPath || rolePath(role), { replace: true });
     } catch (err) {
       setLoginError(err.message || "Login failed. Please check your credentials.");
     } finally {

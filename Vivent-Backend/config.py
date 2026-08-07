@@ -30,6 +30,11 @@ class Settings:
     zoom_client_secret: str = os.getenv("ZOOM_CLIENT_SECRET", "")
     zoom_account_id: str = os.getenv("ZOOM_ACCOUNT_ID", "")
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    # Automation secrets are server-only. Do not expose these through API responses.
+    n8n_social_webhook_url: str = os.getenv("N8N_SOCIAL_WEBHOOK_URL", "")
+    n8n_social_webhook_secret: str = os.getenv("N8N_SOCIAL_WEBHOOK_SECRET", "")
+    automation_callback_secret: str = os.getenv("AUTOMATION_CALLBACK_SECRET", "")
+    stripe_webhook_secret: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
     @property
     def supabase_backend_key(self) -> str:

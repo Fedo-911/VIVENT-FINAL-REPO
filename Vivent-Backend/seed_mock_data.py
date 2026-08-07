@@ -55,6 +55,7 @@ MOCK_EVENTS = [
         "title": "Winter Food Carnival",
         "description": "Savor dozens of street food stalls, live BBQ grills, and culinary challenges.",
         "category": "food",
+        "price": 500,
         "location": "Central Lawn, Gulberg, Lahore",
         "max_participants": 1000,
     },
@@ -62,6 +63,7 @@ MOCK_EVENTS = [
         "title": "Chef's Table Evening",
         "description": "An intimate fine dining showcase with curated courses prepared by master chefs.",
         "category": "food",
+        "price": 2500,
         "location": "The Pavillion, DHA Phase 6, Lahore",
         "max_participants": 80,
     },
@@ -69,6 +71,7 @@ MOCK_EVENTS = [
         "title": "Spicy Street Food Fest",
         "description": "Celebrating the rich, spicy heritage of local traditional foods and snacks.",
         "category": "food",
+        "price": 400,
         "location": "Anarkali Food Street, Lahore",
         "max_participants": 1200,
     },
@@ -76,6 +79,7 @@ MOCK_EVENTS = [
         "title": "Lahore Culinary Showcase",
         "description": "Organic ingredients, bakery stalls, and contemporary fusion food counters.",
         "category": "food",
+        "price": 800,
         "location": "Model Town Park, Lahore",
         "max_participants": 600,
     },
@@ -84,6 +88,7 @@ MOCK_EVENTS = [
         "title": "Scholarship Guidance Expo",
         "description": "Learn how to apply for fully-funded international scholarships like Fulbright and Chevening.",
         "category": "educational",
+        "price": 500,
         "location": "Seminar Hall C, Gulberg, Lahore",
         "max_participants": 250,
     },
@@ -91,6 +96,7 @@ MOCK_EVENTS = [
         "title": "University Admission Fair",
         "description": "Meet representatives from top-tier colleges and universities to secure instant admissions.",
         "category": "educational",
+        "price": 750,
         "location": "Pearl Continental, Lahore",
         "max_participants": 800,
     },
@@ -98,6 +104,7 @@ MOCK_EVENTS = [
         "title": "Global Study Expo",
         "description": "Your ultimate gate to study abroad in the UK, USA, Canada, and Australia.",
         "category": "educational",
+        "price": 1000,
         "location": "Expo Center Hall 2, Lahore",
         "max_participants": 900,
     },
@@ -105,47 +112,20 @@ MOCK_EVENTS = [
         "title": "Future Minds Seminar",
         "description": "An academic workshop covering critical cognitive skills, writing, and research methods.",
         "category": "educational",
+        "price": 600,
         "location": "LUMS Auditorium, Lahore",
         "max_participants": 180,
     },
-    # Expos
-    {
-        "title": "Tech Innovations Expo",
-        "description": "Discover breakthrough gadgets, robotics, consumer electronics, and smart designs.",
-        "category": "expo",
-        "location": "Suntech Expo Arena, Johar Town, Lahore",
-        "max_participants": 1500,
-    },
-    {
-        "title": "Sustainable Green Expo",
-        "description": "Exhibiting solar solutions, electric vehicles, and eco-friendly home items.",
-        "category": "expo",
-        "location": "Gaddafi Stadium Ground, Lahore",
-        "max_participants": 1000,
-    },
-    {
-        "title": "Real Estate & Home Expo",
-        "description": "Explore prime property investments and modern architectural layouts.",
-        "category": "expo",
-        "location": "Expo Center Hall 3, Lahore",
-        "max_participants": 2000,
-    },
-    {
-        "title": "Creative Design Expo",
-        "description": "Showcasing visual arts, interior design concepts, UI/UX galleries, and paintings.",
-        "category": "expo",
-        "location": "Alhamra Art Council, Lahore",
-        "max_participants": 400,
-    }
+    
 ]
 
 def seed_plans_and_admin() -> tuple[str, list[dict]]:
     """Ensure basic plans and admin exist, returning admin ID and plans list."""
     # Seed default plans if missing
     DEFAULT_PLANS = [
-        {"name": "Basic", "price": 99.0, "facilities": {"stalls": 1, "seating": 25}},
-        {"name": "Normal", "price": 249.0, "facilities": {"stalls": 2, "seating": 75}},
-        {"name": "Premium", "price": 499.0, "facilities": {"stalls": 5, "seating": 200}},
+        {"name": "Basic", "price": 5539, "facilities": {"stalls": 1, "seating": 25}},
+        {"name": "Standard", "price": 8309, "facilities": {"stalls": 2, "seating": 75}},
+        {"name": "Premium", "price": 13349, "facilities": {"stalls": 5, "seating": 200}},
     ]
     for plan in DEFAULT_PLANS:
         existing = supabase.table("plans").select("id").eq("name", plan["name"]).execute()
@@ -266,7 +246,8 @@ def seed_events(admin_id: str, plans: list[dict], business_ids: list[str]) -> li
             "start_date": start_date,
             "end_date": end_date,
             "location": event["location"],
-            "venue_details": {"hall": random.choice(["Hall A", "Room 101", "Central Lawn", "Suntech Pavillion"])},
+            "price": event.get("price"),
+            "venue_details": {"hall": random.choice(["Hall A", "Room 101", "Central Lawn", "Suntech Pavillion"]), "ticket_price": event.get("price")},
             "created_by": creator_id,
             "plan_id": plan_id,
             "max_participants": event["max_participants"],

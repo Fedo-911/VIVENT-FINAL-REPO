@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBriefcase,
   FaChevronDown,
@@ -12,7 +12,8 @@ import {
   FaGraduationCap,
   FaUtensils,
 } from "react-icons/fa";
-import { analyticsApi, recordsApi, plansApi, subscriptionsApi } from "../utils/api";
+import { paymentsApi, recordsApi, plansApi, registrationsApi, subscriptionsApi } from "../utils/api";
+import PromotionCampaignSetupWizard from "../components/PromotionCampaignSetupWizard";
 
 const availableEvents = [
   {
@@ -41,45 +42,6 @@ const availableEvents = [
   },
 ];
 
-const promotionPlans = [
-  {
-    name: "Basic Plan",
-    price: "$30",
-    posts: "7 Posts on Social Media",
-    features: [
-      "All starter features +",
-      "Social media strategy",
-      "Content Creation",
-      "On Facebook, Instagram",
-    ],
-  },
-  {
-    name: "Standard Plan",
-    price: "$40",
-    posts: "12 Posts on Social Media",
-    features: [
-      "All starter features +",
-      "Social media strategy",
-      "Content Creation",
-      "On Facebook, Instagram",
-      "Additional TikTok",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Premium Plan",
-    price: "$50",
-    posts: "15 Posts on Social Media",
-    features: [
-      "All starter features +",
-      "Social media strategy",
-      "Content Creation",
-      "On Facebook, Instagram and TikTok",
-      "Additional Linkedin Integration",
-    ],
-  },
-];
-
 const sidebarButton =
   "flex min-h-11 w-full items-center justify-between gap-3 bg-blue-800 px-3.5 py-2.5 text-left text-sm font-semibold text-white shadow-lg transition duration-300 hover:bg-blue-900";
 
@@ -88,7 +50,8 @@ const subButton =
 
 export const Studentpanel = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState("dashboard");
+  const location = useLocation();
+  const [activeView, setActiveView] = useState(() => new URLSearchParams(location.search).get("view") === "social" ? "social" : "dashboard");
   const [recordOpen, setRecordOpen] = useState(false);
   const [joinedEvents, setJoinedEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
@@ -106,29 +69,37 @@ export const Studentpanel = () => {
   const showJoined = activeView === "joined";
   const showRecords = activeView === "records";
 
-  // Fetch student dashboard data (joined events)
-  useEffect(() => {
+  const loadJoinedEvents = useCallback(() => {
     setLoadingJoined(true);
-    analyticsApi
-      .studentDashboard()
+    return registrationsApi
+      .myRegistrations()
       .then((data) => {
-        setJoinedEvents(data?.my_registrations || []);
-        setLoadingJoined(false);
+        setJoinedEvents(data || []);
       })
-      .catch(() => setLoadingJoined(false));
+      .catch(() => setJoinedEvents([]))
+      .finally(() => setLoadingJoined(false));
   }, []);
+
+  // Fetch persisted registrations for the authenticated student on load and after every join.
+  useEffect(() => {
+    queueMicrotask(loadJoinedEvents);
+    window.addEventListener("vivent:registration-created", loadJoinedEvents);
+    return () => window.removeEventListener("vivent:registration-created", loadJoinedEvents);
+  }, [loadJoinedEvents]);
 
   // Fetch past event records
   useEffect(() => {
     if (activeView !== "records" && activeView !== "dashboard") return;
-    setLoadingPast(true);
-    recordsApi
-      .myEvents()
-      .then((data) => {
-        setPastEvents(data?.past_events || []);
-        setLoadingPast(false);
-      })
-      .catch(() => setLoadingPast(false));
+    queueMicrotask(() => {
+      setLoadingPast(true);
+      recordsApi
+        .myEvents()
+        .then((data) => {
+          setPastEvents(data?.past_events || []);
+          setLoadingPast(false);
+        })
+        .catch(() => setLoadingPast(false));
+    });
   }, [activeView]);
 
   const handleLogout = () => {
@@ -298,6 +269,14 @@ const JoinedEventsView = ({ joinedEvents, loading }) => (
             key={item.id || item.event_id}
           >
             <div className="flex h-2 w-full bg-blue-800" />
+            <img
+              alt={item.event?.title || "Joined event"}
+              className="h-36 w-full object-cover"
+              src={
+                item.event?.venue_details?.image_url ||
+                "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop"
+              }
+            />
             <div className="flex flex-1 flex-col p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -314,7 +293,7 @@ const JoinedEventsView = ({ joinedEvents, loading }) => (
                   )}
                 </div>
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                  {item.status || "Registered"}
+                  {item.registration_status || "Registered"}
                 </span>
               </div>
 
@@ -332,9 +311,26 @@ const JoinedEventsView = ({ joinedEvents, loading }) => (
                   </p>
                 )}
                 <p>
+                  <span className="font-semibold text-slate-800">Organizer:</span>{" "}
+                  {item.event?.organizer || "VIVENT"}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-800">Time:</span>{" "}
+                  {item.event?.start_date
+                    ? new Date(item.event.start_date).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "TBD"}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-800">Ticket:</span>{" "}
+                  {item.payment_status === "completed" ? "Confirmed" : "Pending"}
+                </p>
+                <p>
                   <span className="font-semibold text-slate-800">Registered At:</span>{" "}
-                  {item.created_at
-                    ? new Date(item.created_at).toLocaleString()
+                  {item.registration_date || item.created_at
+                    ? new Date(item.registration_date || item.created_at).toLocaleString()
                     : "Just now"}
                 </p>
               </div>
@@ -523,11 +519,13 @@ const PreviousEventsTable = ({
 };
 
 const SocialPromotion = () => {
+  const location = useLocation();
   const [plans, setPlans] = useState([]);
   const [activePlanId, setActivePlanId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectingId, setSelectingId] = useState(null);
   const [message, setMessage] = useState("");
+  const [setupOpen, setSetupOpen] = useState(false);
 
   // Load available plans + current subscription in parallel
   useEffect(() => {
@@ -548,11 +546,19 @@ const SocialPromotion = () => {
     return () => clearTimeout(t);
   }, [message]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment") === "success") {
+      setSetupOpen(true);
+      setMessage("Payment successful. Complete your promotion campaign setup.");
+    }
+  }, [location.search]);
+
   const handleSelectPlan = async (planId) => {
     setSelectingId(planId);
     try {
-      const res = await subscriptionsApi.subscribe(planId);
-      setActivePlanId(res.plan_id);
+      const res = await paymentsApi.createSubscriptionCheckoutSession(planId, `${window.location.origin}/studentpanel?view=social&payment=success`, `${window.location.origin}/studentpanel?view=social&payment=cancelled`);
+      window.location.assign(res.checkout_url);
       setMessage(`✓ ${res.plan?.name || "Plan"} activated successfully!`);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
@@ -565,7 +571,7 @@ const SocialPromotion = () => {
   const displayPlans = plans.map((p, idx) => ({
     id: p.id,
     name: p.name,
-    price: `$${parseFloat(p.price).toFixed(0)}`,
+    price: `PKR ${parseFloat(p.price).toLocaleString("en-PK", { maximumFractionDigits: 0 })}`,
     posts: p.facilities?.posts || `${7 + idx * 5} Posts on Social Media`,
     features: p.facilities?.features || [
       "All starter features +",
@@ -616,11 +622,6 @@ const SocialPromotion = () => {
                     Active
                   </span>
                 )}
-                {!isActive && plan.highlighted && (
-                  <span className="rounded-lg bg-blue-800 px-2.5 py-1.5 text-[11px] font-black text-white">
-                    Popular
-                  </span>
-                )}
               </div>
 
               <p className="mb-4 text-3xl font-black text-blue-800">
@@ -649,10 +650,24 @@ const SocialPromotion = () => {
               >
                 {isSelecting ? "Activating…" : isActive ? "Current Plan" : "Select Plan"}
               </button>
+              {isActive && (
+                <button
+                  className="mt-3 w-full rounded-xl bg-blue-50 px-4 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-100"
+                  onClick={() => setSetupOpen(true)}
+                  type="button"
+                >
+                  Setup Promotion Campaign
+                </button>
+              )}
             </article>
           );
         })}
       </div>
+      <PromotionCampaignSetupWizard
+        open={setupOpen}
+        onClose={() => setSetupOpen(false)}
+        onCompleted={() => setMessage("Campaign setup saved. Admin can now manage it in Post Management.")}
+      />
     </section>
   );
 };

@@ -7,13 +7,17 @@ import json
 from decimal import Decimal
 from urllib.parse import quote
 from uuid import uuid4
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
 from dependencies import get_current_user, require_admin, require_roles
+from config import settings
 from schemas import PaymentInitiate, PaymentOut, StripeSessionCreate, StripeSessionOut
 from supabase_client import supabase
-from utils.helpers import create_notification, generate_transaction_id, get_row_or_404, utc_now_iso
+from utils.helpers import create_notification, generate_transaction_id, get_row_or_404, notify_admins, utc_now_iso
+from utils.promotion_plans import PLAN_PRICES, PROMOTION_CURRENCY
+from routers.subscriptions import activate_subscription_for_user
+from services.campaign_service import create_campaign_after_payment, add_log
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -37,34 +41,65 @@ def _completed_payment_for_user(event_id: str, user_id: str) -> dict | None:
     return response.data[0] if response.data else None
 
 
+def _event_price(event: dict) -> float:
+    """Resolve the server-authoritative price for an event."""
+    ticket_price = event.get("price")
+    try:
+        stored_price = float(ticket_price) if ticket_price is not None else None
+    except (TypeError, ValueError):
+        stored_price = None
+    if stored_price is None or stored_price <= 0:
+        ticket_price = (event.get("venue_details") or {}).get("ticket_price")
+    if ticket_price is not None:
+        try:
+            price = float(ticket_price)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=422, detail="Event ticket price is invalid.")
+        if price > 0:
+            return price
+        if _is_ticket_first_event(event):
+            raise HTTPException(status_code=422, detail="Ticket-first events must have a ticket price greater than zero.")
+
+    if _is_ticket_first_event(event):
+        raise HTTPException(status_code=422, detail="Ticket-first events must have a ticket price.")
+
+    plan_id = event.get("plan_id")
+    plan_res = supabase.table("plans").select("price").eq("id", plan_id).limit(1).execute() if plan_id else None
+    if not plan_res or not plan_res.data:
+        raise HTTPException(status_code=422, detail="Event price is unavailable because its plan could not be found.")
+    price = float(plan_res.data[0]["price"])
+    if price <= 0:
+        raise HTTPException(status_code=422, detail="Event plan price must be greater than zero.")
+    return price
+
+
+def _plan_for_checkout(plan_id: str) -> dict:
+    response = supabase.table("plans").select("*").eq("id", plan_id).eq("is_active", True).limit(1).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Promotion plan not found or inactive.")
+    plan = response.data[0]
+    plan["price"] = PLAN_PRICES[plan["name"]]
+    return plan
+
+
+def _subscription_checkout_price(plan: dict, user: dict) -> float:
+    """Business accounts pay the business-panel rate; all others use catalogue pricing."""
+    multiplier = 2 if user.get("role") == "business" else 1
+    return float(plan["price"]) * multiplier
+
+
 @router.post("/initiate", response_model=PaymentOut, status_code=status.HTTP_201_CREATED)
 def initiate_payment(payload: PaymentInitiate, current_user: dict = Depends(get_current_user)) -> dict:
     """Simulate a successful payment for the current user."""
     event = get_row_or_404("events", payload.event_id)
-    registration_response = (
-        supabase.table("event_registrations")
-        .select("*")
-        .eq("event_id", payload.event_id)
-        .eq("user_id", current_user["id"])
-        .limit(1)
-        .execute()
-    )
-    registration = registration_response.data[0] if registration_response.data else None
-    is_ticket_first_event = _is_ticket_first_event(event)
     if _completed_payment_for_user(payload.event_id, current_user["id"]):
         raise HTTPException(status_code=400, detail="You have already purchased a ticket for this event.")
-    if (
-        not registration
-        and not is_ticket_first_event
-        and current_user["role"] != "admin"
-        and event["created_by"] != current_user["id"]
-    ):
-        raise HTTPException(status_code=400, detail="Register for the event before making a payment.")
 
+    price = _event_price(event)
     payment_data = {
         "user_id": current_user["id"],
         "event_id": payload.event_id,
-        "amount": float(payload.amount),
+        "amount": price,
         "status": "completed",
         "transaction_id": generate_transaction_id(),
         "payment_method": payload.payment_method,
@@ -74,20 +109,15 @@ def initiate_payment(payload: PaymentInitiate, current_user: dict = Depends(get_
     response = supabase.table("payments").insert(payment_data).execute()
     payment = response.data[0]
 
-    if registration:
-        supabase.table("event_registrations").update(
-            {
-                "payment_status": "completed",
-                "payment_id": payment["id"],
-                "updated_at": utc_now_iso(),
-            }
-        ).eq("id", registration["id"]).execute()
-
     create_notification(
         current_user["id"],
-        "Payment Confirmed",
-        f"Payment for '{event['title']}' has been completed. Transaction: {payment['transaction_id']}",
+        "Ticket Purchased Successfully",
+        f"Your ticket for '{event['title']}' has been purchased successfully.",
+        notification_type="ticket_purchased", reference_id=payment["id"], reference_type="ticket",
     )
+    if event.get("created_by") != current_user["id"]:
+        create_notification(event["created_by"], "Ticket Purchased", f"A ticket was purchased for your event '{event['title']}'.", notification_type="ticket_purchased", reference_id=payment["id"], reference_type="ticket")
+    notify_admins("New Payment Completed", f"Payment completed for '{event['title']}'.", notification_type="payment_completed", reference_id=payment["id"], reference_type="payment")
     return payment
 
 
@@ -135,37 +165,24 @@ def create_stripe_checkout_session(
     current_user: dict = Depends(get_current_user)
 ) -> dict:
     """Create a mock Stripe Checkout Session."""
-    event = get_row_or_404("events", payload.event_id)
+    if bool(payload.event_id) == bool(payload.plan_id):
+        raise HTTPException(status_code=422, detail="Provide exactly one of event_id or plan_id.")
+    event = get_row_or_404("events", payload.event_id) if payload.event_id else None
+    plan = _plan_for_checkout(payload.plan_id) if payload.plan_id else None
     
-    # Check registration. Food and educational events sell the ticket first.
-    reg_res = (
-        supabase.table("event_registrations")
-        .select("*")
-        .eq("event_id", payload.event_id)
-        .eq("user_id", current_user["id"])
-        .limit(1)
-        .execute()
-    )
-    registration = reg_res.data[0] if reg_res.data else None
-    is_ticket_first_event = _is_ticket_first_event(event)
-    if _completed_payment_for_user(payload.event_id, current_user["id"]):
+    # Tickets are purchased before registration for every event.
+    registration = None
+    if event:
+        reg_res = (
+            supabase.table("event_registrations").select("*")
+            .eq("event_id", payload.event_id).eq("user_id", current_user["id"])
+            .limit(1).execute()
+        )
+        registration = reg_res.data[0] if reg_res.data else None
+    if event and _completed_payment_for_user(payload.event_id, current_user["id"]):
         raise HTTPException(status_code=400, detail="You have already purchased a ticket for this event.")
-    if (
-        not registration
-        and not is_ticket_first_event
-        and current_user["role"] != "admin"
-        and event["created_by"] != current_user["id"]
-    ):
-        raise HTTPException(status_code=400, detail="Register for the event before making a payment.")
 
-    # Prefer ticket pricing from the event, then fall back to the event's plan price.
-    ticket_price = (event.get("venue_details") or {}).get("ticket_price")
-    if ticket_price and float(ticket_price) > 0:
-        price = float(ticket_price)
-    else:
-        plan_id = event.get("plan_id")
-        plan_res = supabase.table("plans").select("price").eq("id", plan_id).limit(1).execute() if plan_id else None
-        price = float(plan_res.data[0]["price"]) if plan_res and plan_res.data else 99.0
+    price = _subscription_checkout_price(plan, current_user) if plan else _event_price(event)
     
     session_id = f"cs_test_{uuid4().hex}"
     
@@ -176,7 +193,8 @@ def create_stripe_checkout_session(
         f"{base_url}/payments/stripe/mock-checkout"
         f"?session_id={session_id}"
         f"&user_id={current_user['id']}"
-        f"&event_id={payload.event_id}"
+        f"&event_id={payload.event_id or ''}"
+        f"&plan_id={payload.plan_id or ''}"
         f"&amount={price}"
         f"&reg_id={reg_id}"
         f"&success_url={quote(payload.success_url or '/', safe='')}"
@@ -187,7 +205,7 @@ def create_stripe_checkout_session(
         "session_id": session_id,
         "checkout_url": checkout_url,
         "amount": price,
-        "currency": "usd"
+        "currency": PROMOTION_CURRENCY.lower()
     }
 
 
@@ -195,16 +213,25 @@ def create_stripe_checkout_session(
 def get_mock_checkout_portal(
     session_id: str,
     user_id: str,
-    event_id: str,
-    amount: float,
+    event_id: str = "",
+    plan_id: str = "",
+    amount: float | None = None,
     reg_id: str = "",
     success_url: str = "/",
     cancel_url: str = "/",
 ) -> HTMLResponse:
     """Serve a beautifully styled interactive mock Stripe Checkout portal."""
-    event = get_row_or_404("events", event_id)
-    title = html.escape(event.get("title", "VIVENT Event Registration"))
-    description = html.escape(event.get("description", "Premium Event Access Fee"))
+    if bool(event_id) == bool(plan_id):
+        raise HTTPException(status_code=422, detail="Checkout is missing its purchase item.")
+    event = get_row_or_404("events", event_id) if event_id else None
+    plan = _plan_for_checkout(plan_id) if plan_id else None
+    # Never trust a price in the checkout URL.
+    checkout_user = get_row_or_404("users", user_id)
+    amount = _subscription_checkout_price(plan, checkout_user) if plan else _event_price(event)
+    title = html.escape(plan["name"] if plan else event.get("title", "VIVENT Event Registration"))
+    description = html.escape("Monthly Social Media Promotion Subscription" if plan else event.get("description", "Premium Event Access Fee"))
+    purchase_label = "Monthly Subscription" if plan else "Event Ticket"
+    success_message = "Your promotion plan is active. Redirecting to your dashboard..." if plan else "Your ticket has been purchased. Redirecting back to your event feed..."
     success_url_json = json.dumps(success_url or "/")
     
     html_content = f"""<!DOCTYPE html>
@@ -416,8 +443,8 @@ def get_mock_checkout_portal(
                 <div class="stripe-logo" style="margin-top: 5px;">STRIPE CHECKOUT SIMULATOR</div>
             </div>
             <div>
-                <p style="text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6;">Event Ticket</p>
-                <div class="price">${amount:.2f}</div>
+                <p style="text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6;">{purchase_label}</p>
+                <div class="price">{PROMOTION_CURRENCY} {amount:,.0f}</div>
                 <div class="event-details">
                     <p style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">{title}</p>
                     <p>{description[:160]}...</p>
@@ -450,14 +477,14 @@ def get_mock_checkout_portal(
                 </div>
                 <button class="pay-btn" id="pay-button">
                     <span class="spinner" id="btn-spinner"></span>
-                    <span id="btn-text">Pay ${amount:.2f}</span>
+                    <span id="btn-text">Pay {PROMOTION_CURRENCY} {amount:,.0f}</span>
                 </button>
             </form>
         </div>
         <div class="success-overlay" id="success-screen">
             <div class="success-checkmark">✓</div>
             <div class="success-title">Payment Completed</div>
-            <div class="success-text">Your ticket has been purchased. Redirecting back to your event feed...</div>
+            <div class="success-text">{success_message}</div>
         </div>
     </div>
 
@@ -468,6 +495,11 @@ def get_mock_checkout_portal(
         const successScreen = document.getElementById("success-screen");
 
         payButton.addEventListener("click", async () => {{
+            // Stripe's common declined-card test suffix provides a safe mock failure path.
+            if (document.getElementById("card-num").value.replace(/\s/g, "").endsWith("0002")) {{
+                alert("Payment failed. Your plan has not been activated.");
+                return;
+            }}
             payButton.disabled = true;
             btnText.style.display = "none";
             btnSpinner.style.display = "block";
@@ -482,11 +514,12 @@ def get_mock_checkout_portal(
                     object: {{
                         id: "{session_id}",
                         amount_total: Math.round({amount} * 100),
-                        currency: "usd",
+                        currency: "pkr",
                         payment_status: "paid",
                         metadata: {{
                             user_id: "{user_id}",
                             event_id: "{event_id}",
+                            plan_id: "{plan_id}",
                             reg_id: "{reg_id}"
                         }}
                     }}
@@ -530,26 +563,57 @@ def get_mock_checkout_portal(
 
 
 @router.post("/stripe/webhook", status_code=status.HTTP_200_OK)
-def stripe_webhook(payload: dict) -> dict:
+def stripe_webhook(
+    payload: dict,
+    stripe_signature: str | None = Header(default=None, alias="Stripe-Signature"),
+) -> dict:
     """Receive and process mock Stripe Webhook events asynchronously."""
+    if settings.stripe_webhook_secret and not stripe_signature:
+        raise HTTPException(status_code=401, detail="Missing Stripe webhook signature.")
     event_type = payload.get("type")
     if event_type != "checkout.session.completed":
         return {"status": "ignored", "reason": f"Unhandled event type '{event_type}'"}
         
     session = payload.get("data", {}).get("object", {})
+    if session.get("payment_status") != "paid":
+        raise HTTPException(status_code=400, detail="Stripe checkout session is not paid.")
     session_id = session.get("id")
     amount_cents = session.get("amount_total", 0)
-    amount = float(amount_cents) / 100.0
+    submitted_amount = float(amount_cents) / 100.0
     
     metadata = session.get("metadata", {})
     user_id = metadata.get("user_id")
     event_id = metadata.get("event_id")
+    plan_id = metadata.get("plan_id")
     reg_id = metadata.get("reg_id")
     
-    if not user_id or not event_id:
-        raise HTTPException(status_code=400, detail="Missing required user_id or event_id metadata.")
+    if not user_id or bool(event_id) == bool(plan_id):
+        raise HTTPException(status_code=400, detail="Missing or invalid checkout metadata.")
+    if plan_id:
+        plan = _plan_for_checkout(plan_id)
+        checkout_user = get_row_or_404("users", user_id)
+        amount = _subscription_checkout_price(plan, checkout_user)
+        if round(submitted_amount * 100) != round(amount * 100):
+            raise HTTPException(status_code=400, detail="Checkout amount does not match the plan price.")
+        subscription = activate_subscription_for_user(user_id, plan_id)
+        # Payment confirmation creates the campaign. AI dispatch waits until
+        # the promotion setup wizard has collected the required campaign brief.
+        campaign = create_campaign_after_payment(user_id, plan, session_id)
+        add_log(campaign["id"], "Campaign setup required", details={"plan_id": plan_id})
+        create_notification(
+            user_id,
+            "Promotion Plan Activated",
+            f"Your {plan['name']} monthly promotion plan is now active.",
+            notification_type="subscription_activated",
+            reference_id=subscription.subscription_id,
+            reference_type="subscription",
+        )
+        return {"status": "success", "subscription_id": subscription.subscription_id, "campaign_id": campaign["id"], "automation_status": "pending_setup"}
         
     event = get_row_or_404("events", event_id)
+    amount = _event_price(event)
+    if round(submitted_amount * 100) != round(amount * 100):
+        raise HTTPException(status_code=400, detail="Checkout amount does not match the event price.")
     
     # Prevent double-processing
     existing_payment = supabase.table("payments").select("id").eq("transaction_id", session_id).execute()
@@ -586,7 +650,11 @@ def stripe_webhook(payload: dict) -> dict:
     create_notification(
         user_id,
         "Payment Confirmed via Stripe",
-        f"Your Stripe payment of ${amount:.2f} for '{event['title']}' was processed. Transaction: {session_id}"
+        f"Your ticket for '{event['title']}' has been purchased successfully.",
+        notification_type="ticket_purchased", reference_id=payment["id"], reference_type="ticket",
     )
+    if event.get("created_by") != user_id:
+        create_notification(event["created_by"], "Ticket Purchased", f"A ticket was purchased for your event '{event['title']}'.", notification_type="ticket_purchased", reference_id=payment["id"], reference_type="ticket")
+    notify_admins("New Payment Completed", f"Payment completed for '{event['title']}'.", notification_type="payment_completed", reference_id=payment["id"], reference_type="payment")
     
     return {"status": "success", "payment_id": payment["id"]}

@@ -7,7 +7,9 @@ import {
   FaChevronRight,
   FaClipboardList,
   FaEdit,
+  FaEnvelope,
   FaFacebook,
+  FaEye,
   FaInstagram,
   FaLinkedin,
   FaPlus,
@@ -17,8 +19,8 @@ import {
   FaTimes,
   FaUpload,
 } from "react-icons/fa";
-import { allShowcaseEvents } from "../data/eventCatalog";
-import { eventsApi, adminApi, analyticsApi, recordsApi } from "../utils/api";
+import { eventsApi, adminApi, contactApi } from "../utils/api";
+import CampaignManager from "./CampaignManager";
 
 const eventCategories = [
   {
@@ -44,19 +46,7 @@ const eventCategories = [
   },
 ];
 
-const initialPresentEvents = allShowcaseEvents.map((event, index) => {
-  const baseAttendees = {
-    "job-fair": 320,
-    "food-events": 420,
-    "educational-expo": 360,
-  }[event.category] || 300;
-
-  return {
-    ...event,
-    id: index + 1,
-    attendees: baseAttendees + (index % 3) * 25,
-  };
-});
+const initialPresentEvents = [];
 
 const initialPreviousEvents = [
   {
@@ -160,7 +150,6 @@ const initialManagedEvents = [
   },
 ];
 
-const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
 const months = [
   "January",
   "February",
@@ -195,6 +184,8 @@ const postPlatforms = [
   "Snapchat",
   "Thread",
 ];
+
+const contactStatuses = ["New", "In Progress", "Replied", "Closed"];
 
 const emptyPostForm = {
   title: "",
@@ -288,7 +279,7 @@ const initialPromotionClients = [
     name: "Vivent Food Carnival",
     userType: "business",
     plan: "premium",
-    platforms: ["Facebook", "Instagram", "Tiktok", "Youtube"],
+    platforms: ["Facebook", "Instagram", "Tiktok", "Linkedin"],
     reach: 74200,
     engagement: 11850,
     growth: 29,
@@ -348,13 +339,18 @@ export const Adminpanel = () => {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState("dashboard");
   const [attendeeRange, setAttendeeRange] = useState(30);
-  const [calendarYear, setCalendarYear] = useState(2026);
-  const [calendarMonth, setCalendarMonth] = useState(4);
+  const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth());
   const [presentEvents, setPresentEvents] = useState(initialPresentEvents);
   const [previousEvents, setPreviousEvents] = useState(initialPreviousEvents);
   const [managedEvents, setManagedEvents] = useState(initialManagedEvents);
   const [pendingEvents, setPendingEvents] = useState([]);
   const [pendingEventsLoading, setPendingEventsLoading] = useState(true);
+  const [contactMessages, setContactMessages] = useState([]);
+  const [contactMessagesLoading, setContactMessagesLoading] = useState(true);
+  const [selectedContactMessage, setSelectedContactMessage] = useState(null);
+  const [contactReply, setContactReply] = useState("");
+  const [sendingContactReply, setSendingContactReply] = useState(false);
   const [adminMessage, setAdminMessage] = useState("");
   const [editingManagedEventId, setEditingManagedEventId] = useState(null);
   const [editor, setEditor] = useState(null);
@@ -390,6 +386,17 @@ export const Adminpanel = () => {
     });
   };
 
+  const loadContactMessages = () => {
+    setContactMessagesLoading(true);
+    contactApi.list().then((data) => {
+      setContactMessages(data || []);
+    }).catch(() => {
+      setContactMessages([]);
+    }).finally(() => {
+      setContactMessagesLoading(false);
+    });
+  };
+
   // Load real data from backend
   useEffect(() => {
     // Load all events for present/previous views
@@ -399,7 +406,7 @@ export const Adminpanel = () => {
       const upcoming = items.filter((e) => new Date(e.start_date) >= now);
       const past = items.filter((e) => new Date(e.start_date) < now);
       if (upcoming.length > 0) {
-        setPresentEvents(upcoming.map((e, idx) => ({
+        setPresentEvents(upcoming.map((e) => ({
           ...e,
           id: e.id,
           title: e.title,
@@ -427,8 +434,22 @@ export const Adminpanel = () => {
       }
     }).catch(() => {});
 
-    // Load pending events for approval
-    loadPendingEvents();
+    // Load pending events and contact messages for admin review.
+    adminApi.pendingEvents().then((data) => {
+      setPendingEvents(data?.items || data || []);
+    }).catch(() => {
+      setPendingEvents([]);
+    }).finally(() => {
+      setPendingEventsLoading(false);
+    });
+
+    contactApi.list().then((data) => {
+      setContactMessages(data || []);
+    }).catch(() => {
+      setContactMessages([]);
+    }).finally(() => {
+      setContactMessagesLoading(false);
+    });
   }, []);
 
   const approvePendingEvent = async (eventId) => {
@@ -453,6 +474,68 @@ export const Adminpanel = () => {
       loadPendingEvents();
     } catch (err) {
       setAdminMessage(err.message || "Could not reject event.");
+    }
+  };
+
+  const updateContactMessageStatus = async (messageId, status) => {
+    setAdminMessage("");
+    try {
+      const updated = await contactApi.updateStatus(messageId, status);
+      setContactMessages((current) =>
+        current.map((message) => (message.id === messageId ? updated : message))
+      );
+      setSelectedContactMessage((current) =>
+        current?.id === messageId ? updated : current
+      );
+      setAdminMessage("Contact message status updated.");
+    } catch (err) {
+      setAdminMessage(err.message || "Could not update contact message.");
+    }
+  };
+
+  const deleteContactMessage = async (messageId) => {
+    if (!window.confirm("Delete this contact message?")) return;
+    setAdminMessage("");
+    try {
+      await contactApi.delete(messageId);
+      setContactMessages((current) => current.filter((message) => message.id !== messageId));
+      setSelectedContactMessage(null);
+      setAdminMessage("Contact message deleted.");
+    } catch (err) {
+      setAdminMessage(err.message || "Could not delete contact message.");
+    }
+  };
+
+  const openContactMessage = (message) => {
+    setSelectedContactMessage(message);
+    setContactReply(message.admin_reply || "");
+  };
+
+  const sendContactReply = async () => {
+    const reply = contactReply.trim();
+    if (!reply) {
+      setAdminMessage("Reply cannot be empty.");
+      return;
+    }
+    if (reply.length > 5000 || !selectedContactMessage || sendingContactReply) return;
+    setSendingContactReply(true);
+    setAdminMessage("");
+    try {
+      await contactApi.reply(selectedContactMessage.id, reply);
+      const updated = {
+        ...selectedContactMessage,
+        admin_reply: reply,
+        is_replied: true,
+        replied_at: new Date().toISOString(),
+        status: "Replied",
+      };
+      setContactMessages((current) => current.map((message) => message.id === updated.id ? updated : message));
+      setSelectedContactMessage(updated);
+      setAdminMessage("Reply sent successfully.");
+    } catch (err) {
+      setAdminMessage(err.message || "Could not send reply.");
+    } finally {
+      setSendingContactReply(false);
     }
   };
 
@@ -570,6 +653,11 @@ export const Adminpanel = () => {
       helper: "awaiting approval",
     },
     {
+      label: "Contact Messages",
+      value: contactMessages.length,
+      helper: "inquiries received",
+    },
+    {
       label: "Present Events",
       value: filteredPresentEvents.length,
       helper: `${selectedWindowDays} day window`,
@@ -589,26 +677,6 @@ export const Adminpanel = () => {
       isAttendeeCard: true,
     },
   ];
-
-  const calendarMeta = useMemo(() => {
-    const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
-    const leadingBlanks = firstDay === 0 ? 6 : firstDay - 1;
-    const days = Array.from({ length: totalDays }, (_, index) => index + 1);
-    const eventsByDate = allDashboardEvents.reduce((acc, event) => {
-      const eventDate = new Date(`${event.date}T00:00:00`);
-      if (
-        eventDate.getFullYear() === Number(calendarYear) &&
-        eventDate.getMonth() === Number(calendarMonth)
-      ) {
-        const day = eventDate.getDate();
-        acc[day] = [...(acc[day] || []), event];
-      }
-      return acc;
-    }, {});
-
-    return { days, leadingBlanks, eventsByDate };
-  }, [allDashboardEvents, calendarMonth, calendarYear]);
 
   const openAddEvent = (category = "job-fair") => {
     setEditor({
@@ -636,8 +704,19 @@ export const Adminpanel = () => {
     setDeleteRequest(null);
   };
 
-  const confirmDeleteEvent = () => {
+  const confirmDeleteEvent = async () => {
     if (!deleteRequest) return;
+
+    // Real backend events have UUID/string identifiers.  Delete there first;
+    // the calendar receives the mutation event and refetches immediately.
+    if (typeof deleteRequest.eventId === "string") {
+      try {
+        await eventsApi.delete(deleteRequest.eventId);
+      } catch (err) {
+        setAdminMessage(err.message || "Could not delete event.");
+        return;
+      }
+    }
 
     if (deleteRequest.source === "completed") {
       setPreviousEvents((items) =>
@@ -652,7 +731,7 @@ export const Adminpanel = () => {
     setDeleteRequest(null);
   };
 
-  const saveEvent = (event) => {
+  const saveEvent = async (event) => {
     const preparedEvent = {
       ...event,
       attendees: Number(event.attendees || 0),
@@ -679,6 +758,28 @@ export const Adminpanel = () => {
       ...preparedEvent,
       status: preparedEvent.status || "Upcoming",
     };
+
+    if (typeof nextEvent.id === "string") {
+      const start = new Date(`${nextEvent.date} ${nextEvent.time}`);
+      const previousStart = new Date(nextEvent.start_date);
+      const previousEnd = new Date(nextEvent.end_date);
+      const duration = previousEnd.getTime() - previousStart.getTime();
+      try {
+        await eventsApi.update(nextEvent.id, {
+          title: nextEvent.title,
+          location: nextEvent.venue,
+          ...(Number.isFinite(start.getTime())
+            ? {
+                start_date: start.toISOString(),
+                end_date: new Date(start.getTime() + (duration > 0 ? duration : 60 * 60 * 1000)).toISOString(),
+              }
+            : {}),
+        });
+      } catch (err) {
+        setAdminMessage(err.message || "Could not update event.");
+        return;
+      }
+    }
 
     setPresentEvents((items) => items.filter((item) => item.id !== nextEvent.id));
     setPreviousEvents((items) => items.filter((item) => item.id !== nextEvent.id));
@@ -890,6 +991,96 @@ export const Adminpanel = () => {
     );
   };
 
+  const renderContactMessagesTable = () => {
+    if (contactMessagesLoading) {
+      return (
+        <p className="rounded-2xl bg-blue-50 p-4 text-sm font-bold text-blue-800">
+          Loading contact messages...
+        </p>
+      );
+    }
+
+    if (contactMessages.length === 0) {
+      return (
+        <p className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">
+          No contact messages right now.
+        </p>
+      );
+    }
+
+    return (
+      <div className="max-w-full overflow-x-auto">
+        <table className="w-full min-w-[980px] border-separate border-spacing-y-2">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-[0.18em] text-black">
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2">Email</th>
+              <th className="px-3 py-2">Phone</th>
+              <th className="px-3 py-2">Service</th>
+              <th className="px-3 py-2">Message</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2">Date Submitted</th>
+              <th className="px-3 py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contactMessages.map((message) => (
+              <tr key={message.id} className="bg-white shadow-sm">
+                <td className="rounded-l-2xl px-3 py-3.5 text-sm font-bold text-black">
+                  {message.name}
+                </td>
+                <td className="px-3 py-3.5 text-sm text-black">{message.email}</td>
+                <td className="px-3 py-3.5 text-sm text-black">{message.phone}</td>
+                <td className="px-3 py-3.5 text-sm text-black">{message.service}</td>
+                <td className="px-3 py-3.5 text-sm text-black">
+                  <span className="line-clamp-2">{message.message}</span>
+                </td>
+                <td className="px-3 py-3.5">
+                  <select
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-black outline-none transition focus:border-blue-800"
+                    onChange={(event) =>
+                      updateContactMessageStatus(message.id, event.target.value)
+                    }
+                    value={message.status}
+                  >
+                    {contactStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="px-3 py-3.5 text-sm text-black">
+                  {message.created_at ? new Date(message.created_at).toLocaleString() : "TBD"}
+                </td>
+                <td className="rounded-r-2xl px-3 py-3.5">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-800 px-3 text-xs font-bold text-white transition hover:bg-blue-900"
+                      onClick={() => openContactMessage(message)}
+                      type="button"
+                    >
+                      <FaEye />
+                      View
+                    </button>
+                    <button
+                      className="inline-flex h-10 items-center gap-2 rounded-xl bg-red-600 px-3 text-xs font-bold text-white transition hover:bg-red-700"
+                      onClick={() => deleteContactMessage(message.id)}
+                      type="button"
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 text-black">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -965,6 +1156,17 @@ export const Adminpanel = () => {
                 </button>
 
                 <button
+                  onClick={() => setActiveView("contact-messages")}
+                  className={sidebarButton}
+                  type="button"
+                >
+                  <span className="flex items-center gap-3">
+                    <FaEnvelope />
+                    Contact Messages
+                  </span>
+                </button>
+
+                <button
                   onClick={() => setActiveView("post-management")}
                   className={sidebarButton}
                   type="button"
@@ -1013,6 +1215,8 @@ export const Adminpanel = () => {
                 ? "Add Event"
               : activeView === "records"
                 ? "Event Records"
+                : activeView === "contact-messages"
+                  ? "Contact Messages"
                 : activeView === "post-management"
                   ? "Post Management"
                   : activeView === "client-analytics"
@@ -1026,6 +1230,7 @@ export const Adminpanel = () => {
           {!activeCategory &&
             activeView !== "records" &&
             activeView !== "post-management" &&
+            activeView !== "contact-messages" &&
             activeView !== "client-analytics" &&
             activeView !== "add-event" &&
             activeView !== "calendar" && (
@@ -1162,12 +1367,42 @@ export const Adminpanel = () => {
                 </div>
 
                 <CalendarPanel
-                  calendarMeta={calendarMeta}
                   calendarMonth={calendarMonth}
                   calendarYear={calendarYear}
                   setCalendarMonth={setCalendarMonth}
                   setCalendarYear={setCalendarYear}
                 />
+              </div>
+            </section>
+          )}
+
+          {activeView === "contact-messages" && (
+            <section className="space-y-6">
+              {adminMessage && (
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-800">
+                  {adminMessage}
+                </div>
+              )}
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-xl font-black text-black">
+                      Contact Messages
+                    </h3>
+                    <p className="text-sm font-medium text-gray-500">
+                      Review and manage inquiries submitted from the contact form.
+                    </p>
+                  </div>
+                  <button
+                    className="inline-flex w-fit items-center gap-2 rounded-xl bg-blue-800 px-4 py-3 font-semibold text-white transition hover:bg-blue-900"
+                    onClick={loadContactMessages}
+                    type="button"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                {renderContactMessagesTable()}
               </div>
             </section>
           )}
@@ -1254,6 +1489,113 @@ export const Adminpanel = () => {
 
       {editor && (
         <EventEditor editor={editor} onClose={closeEditor} onSave={saveEvent} />
+      )}
+
+      {selectedContactMessage && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-5 shadow-2xl sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-black">
+                  Contact Inquiry
+                </p>
+                <h3 className="mt-1 text-2xl font-black text-black">
+                  {selectedContactMessage.name}
+                </h3>
+              </div>
+              <button
+                className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-800 transition hover:bg-blue-100"
+                onClick={() => setSelectedContactMessage(null)}
+                type="button"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="grid gap-3 text-sm md:grid-cols-2">
+              <p className="rounded-2xl bg-slate-50 p-4 font-semibold text-black">
+                Email: {selectedContactMessage.email}
+              </p>
+              <p className="rounded-2xl bg-slate-50 p-4 font-semibold text-black">
+                Phone: {selectedContactMessage.phone}
+              </p>
+              <p className="rounded-2xl bg-slate-50 p-4 font-semibold text-black">
+                Service: {selectedContactMessage.service}
+              </p>
+              <label className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-black">
+                Status
+                <select
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-black outline-none transition focus:border-blue-800"
+                  onChange={(event) =>
+                    updateContactMessageStatus(selectedContactMessage.id, event.target.value)
+                  }
+                  value={selectedContactMessage.status}
+                >
+                  {contactStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
+                Message
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-sm font-medium leading-6 text-black">
+                {selectedContactMessage.message}
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <label className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500" htmlFor="contact-admin-reply">
+                  Admin Reply
+                </label>
+                <span className="text-xs text-gray-500">{contactReply.length}/5000</span>
+              </div>
+              <textarea
+                id="contact-admin-reply"
+                className="min-h-[120px] w-full resize-y rounded-2xl border border-slate-200 p-4 text-sm leading-6 text-black outline-none transition focus:border-blue-800"
+                disabled={sendingContactReply}
+                maxLength={5000}
+                onChange={(event) => setContactReply(event.target.value)}
+                placeholder="Write your reply..."
+                value={contactReply}
+              />
+              {selectedContactMessage.replied_at && (
+                <p className="mt-2 text-xs text-gray-500">Last replied {new Date(selectedContactMessage.replied_at).toLocaleString()}</p>
+              )}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-blue-800 transition hover:bg-slate-200"
+                onClick={() => setSelectedContactMessage(null)}
+                type="button"
+              >
+                Close
+              </button>
+              <button
+                className="rounded-xl bg-blue-800 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={sendingContactReply || !contactReply.trim()}
+                onClick={sendContactReply}
+                type="button"
+              >
+                {sendingContactReply ? "Sending..." : "Send Reply"}
+              </button>
+              <button
+                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700"
+                onClick={() => deleteContactMessage(selectedContactMessage.id)}
+                type="button"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {deleteRequest && (
@@ -1568,6 +1910,8 @@ const PostManagement = ({
   togglePostPlatform,
   updatePostForm,
 }) => {
+  return <CampaignManager />;
+
   const [draftPosts, setDraftPosts] = useState(posts);
   const [editingPostId, setEditingPostId] = useState(null);
   const [savedAccounts, setSavedAccounts] = useState([]);
@@ -2123,125 +2467,103 @@ const ClientAnalytics = ({ clients, updatePromotionClient }) => {
   );
 };
 
-const CalendarPanel = ({
-  calendarMeta,
-  calendarMonth,
-  calendarYear,
-  setCalendarMonth,
-  setCalendarYear,
-}) => (
-  <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-    <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-5 py-5 text-white">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-blue-100">
-            Event Calendar
-          </p>
-          <h3 className="mt-2 text-2xl font-black">
-            {months[calendarMonth]} {calendarYear}
-          </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-blue-100/90">
-            Browse scheduled events in a modern calendar layout. Hover any active
-            date to reveal the event details.
-          </p>
-        </div>
+const calendarCategory = (category) => ({
+  job_fair: ["Job Fair", "bg-blue-100 text-blue-800"],
+  food: ["Food Event", "bg-orange-100 text-orange-800"],
+  educational: ["Educational Expo", "bg-violet-100 text-violet-800"],
+  expo: ["Expo", "bg-emerald-100 text-emerald-800"],
+}[category] || [category?.replaceAll("_", " ") || "Event", "bg-slate-100 text-slate-700"]);
 
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-white backdrop-blur">
-            {calendarMeta.days.length} days
-          </span>
-          <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-white backdrop-blur">
-            Active dates highlighted
-          </span>
+const eventDateKey = (value) => String(value || "").slice(0, 10);
+const eventTime = (value) => {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? "Time TBA" : parsed.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+};
+const eventStatus = (event) => {
+  if (event.status === "completed") return "Completed";
+  const now = Date.now();
+  const start = new Date(event.start_date).getTime();
+  const end = new Date(event.end_date).getTime();
+  return Number.isFinite(start) && start <= now && (!Number.isFinite(end) || end >= now) ? "Ongoing" : "Upcoming";
+};
+
+const CalendarPanel = ({ calendarMonth, calendarYear, setCalendarMonth, setCalendarYear }) => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const firstDate = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-01T00:00:00`;
+  const lastDate = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(new Date(calendarYear, calendarMonth + 1, 0).getDate()).padStart(2, "0")}T23:59:59.999`;
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await eventsApi.listByStatuses({ statuses: ["approved", "completed"], start_date: firstDate, end_date: lastDate, page_size: 100 });
+        if (active) setEvents(response.items || []);
+      } catch (loadError) {
+        if (active) setError(loadError.message || "We could not load events. Please try again.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [firstDate, lastDate, retry]);
+
+  useEffect(() => {
+    const refresh = () => setRetry((value) => value + 1);
+    const interval = window.setInterval(refresh, 15000);
+    window.addEventListener("vivent:events-changed", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("vivent:events-changed", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
+
+  const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const leadingBlanks = (new Date(calendarYear, calendarMonth, 1).getDay() + 6) % 7;
+  const eventsByDay = events.reduce((grouped, event) => {
+    const day = Number(eventDateKey(event.start_date).slice(-2));
+    if (Number.isInteger(day) && day > 0) grouped[day] = [...(grouped[day] || []), event];
+    return grouped;
+  }, {});
+  const today = new Date();
+  const years = Array.from({ length: 15 }, (_, index) => today.getFullYear() - 5 + index);
+  const selectedEvents = selectedDay ? eventsByDay[selectedDay] || [] : [];
+
+  const changeMonth = (direction) => {
+    const next = new Date(calendarYear, calendarMonth + direction, 1);
+    setCalendarYear(next.getFullYear());
+    setCalendarMonth(next.getMonth());
+  };
+
+  return <>
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
+      <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-5 py-5 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><p className="text-[11px] font-bold uppercase tracking-[0.28em] text-blue-100">Live event calendar</p><h3 className="mt-2 text-2xl font-black">{months[calendarMonth]} {calendarYear}</h3></div>
+          <div className="flex gap-2"><button type="button" onClick={() => changeMonth(-1)} className="rounded-xl bg-white/10 px-3 py-2 font-bold hover:bg-white/20">Previous</button><button type="button" onClick={() => changeMonth(1)} className="rounded-xl bg-white/10 px-3 py-2 font-bold hover:bg-white/20">Next</button></div>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <select className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-bold text-white outline-none" onChange={(event) => setCalendarYear(Number(event.target.value))} value={calendarYear}>{years.map((year) => <option key={year} value={year} className="text-slate-900">{year}</option>)}</select>
+          <select className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-bold text-white outline-none" onChange={(event) => setCalendarMonth(Number(event.target.value))} value={calendarMonth}>{months.map((month, index) => <option key={month} value={index} className="text-slate-900">{month}</option>)}</select>
         </div>
       </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <select
-          className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-bold text-white outline-none backdrop-blur focus:border-white/30"
-          onChange={(event) => setCalendarYear(Number(event.target.value))}
-          value={calendarYear}
-        >
-          {years.map((year) => (
-            <option key={year} value={year} className="text-slate-900">
-              {year}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-bold text-white outline-none backdrop-blur focus:border-white/30"
-          onChange={(event) => setCalendarMonth(Number(event.target.value))}
-          value={calendarMonth}
-        >
-          {months.map((month, index) => (
-            <option key={month} value={index} className="text-slate-900">
-              {month}
-            </option>
-          ))}
-        </select>
+      <div className="bg-slate-50 p-3 sm:p-5">
+        <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-blue-800 sm:gap-2 sm:text-[11px]">{["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => <div key={day} className="py-2">{day}</div>)}</div>
+        {loading ? <div className="mt-2 grid grid-cols-7 gap-2">{Array.from({ length: 35 }, (_, index) => <div key={index} className="h-20 animate-pulse rounded-2xl bg-slate-200" />)}</div> : error ? <div className="mt-4 rounded-2xl bg-red-50 p-5 text-center text-sm font-semibold text-red-700">{error}<button onClick={() => setRetry((value) => value + 1)} className="ml-3 underline" type="button">Retry</button></div> : <div className="mt-2 grid grid-cols-7 gap-1.5 sm:gap-2">{Array.from({ length: leadingBlanks }, (_, index) => <div key={`blank-${index}`} />)}{Array.from({ length: totalDays }, (_, index) => { const day = index + 1; const dayEvents = eventsByDay[day] || []; const isToday = today.getFullYear() === calendarYear && today.getMonth() === calendarMonth && today.getDate() === day; return <button key={day} type="button" onClick={() => dayEvents.length && setSelectedDay(day)} className={`min-h-16 rounded-xl border p-1 text-left transition sm:min-h-24 sm:rounded-2xl sm:p-2 ${dayEvents.length ? "border-blue-200 bg-white hover:border-blue-600 hover:shadow-md" : "border-slate-200 bg-white"} ${isToday ? "ring-2 ring-cyan-400 ring-offset-1" : ""}`}><div className="flex items-center justify-between"><span className="grid h-6 w-6 place-items-center rounded-full text-xs font-black text-slate-700">{day}</span>{dayEvents.length > 1 && <span className="rounded-full bg-blue-800 px-1.5 py-0.5 text-[9px] font-bold text-white">+{dayEvents.length}</span>}</div>{dayEvents.slice(0, 2).map((event) => { const [label, color] = calendarCategory(event.category); return <span key={event.id} className={`mt-1 block truncate rounded px-1 py-0.5 text-[9px] font-bold sm:text-[10px] ${color}`} title={`${event.title} — ${label}`}>{event.title}</span>; })}{dayEvents.length > 2 && <span className="mt-1 block text-[9px] font-bold text-blue-700">+{dayEvents.length - 2} more</span>}</button>; })}</div>}
+        {!loading && !error && events.length === 0 && <p className="py-8 text-center text-sm font-semibold text-slate-500">No events are scheduled for this month.</p>}
       </div>
     </div>
-
-    <div className="bg-slate-50 px-5 py-5">
-      <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-blue-800">
-        {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
-          <div key={day} className="py-2">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-2 grid grid-cols-7 gap-2">
-        {Array.from({ length: calendarMeta.leadingBlanks }).map((_, index) => (
-          <div key={`blank-${index}`} />
-        ))}
-
-        {calendarMeta.days.map((day) => {
-          const dayEvents = calendarMeta.eventsByDate[day] || [];
-          const hasEvents = dayEvents.length > 0;
-
-          return (
-            <div key={day} className="group relative">
-              <button
-                className={`flex min-h-14 w-full items-center justify-center rounded-2xl border text-sm font-black transition duration-300 ${
-                  hasEvents
-                    ? "border-blue-800 bg-blue-800 text-white shadow-lg hover:-translate-y-0.5 hover:bg-blue-900"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50"
-                }`}
-                type="button"
-              >
-                <span>{day}</span>
-                {hasEvents && (
-                  <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-cyan-300" />
-                )}
-              </button>
-
-              {hasEvents && (
-                <div className="pointer-events-none absolute right-0 top-[3.7rem] z-20 hidden w-72 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-2xl group-hover:block">
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-black">
-                    {dayEvents.length} event{dayEvents.length > 1 ? "s" : ""}
-                  </p>
-                  {dayEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="border-t border-slate-100 py-2 first:border-t-0"
-                    >
-                      <p className="font-bold text-black">{event.title}</p>
-                      <p className="text-xs font-medium text-gray-500">
-                        {event.venue} at {event.time}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-);
+    {selectedDay && <div className="fixed inset-0 z-[70] overflow-y-auto bg-slate-950/60 p-4" role="dialog" aria-modal="true"><div className="mx-auto my-6 w-full max-w-2xl rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-800">{months[calendarMonth]} {selectedDay}, {calendarYear}</p><h3 className="mt-1 text-2xl font-black text-slate-900">Scheduled events</h3></div><button type="button" onClick={() => setSelectedDay(null)} className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-xl font-bold text-slate-700">×</button></div><div className="mt-5 space-y-3">{selectedEvents.map((event) => { const [category, color] = calendarCategory(event.category); return <article key={event.id} className="rounded-2xl border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><h4 className="text-lg font-black text-slate-900">{event.title || "Untitled event"}</h4><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${color}`}>{category}</span></div><div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2"><p><b className="text-slate-900">Date:</b> {eventDateKey(event.start_date) || "TBA"}</p><p><b className="text-slate-900">Time:</b> {eventTime(event.start_date)}</p><p><b className="text-slate-900">Location:</b> {event.location || "Location TBA"}</p><p><b className="text-slate-900">Status:</b> {eventStatus(event)}</p></div>{event.description && <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{event.description}</p>}</article>; })}</div></div></div>}
+  </>;
+};
 
 const EventEditor = ({ editor, onClose, onSave }) => {
   const [form, setForm] = useState(editor.values);

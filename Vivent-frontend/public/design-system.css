@@ -1,0 +1,19 @@
+:root {
+  --vivent-blue: #2342B8;
+  --vivent-blue-hover: #1B358F;
+  --vivent-blue-soft: #EAF0FF;
+  --vivent-blue-border: #C9D6FF;
+  --vivent-slate-950: #172033;
+  --vivent-slate-700: #4B5565;
+  --vivent-slate-500: #6B7280;
+  --vivent-slate-300: #D9DFE8;
+  --vivent-slate-200: #E7EBF1;
+  --vivent-surface: #FFFFFF;
+  --vivent-page: #F7F9FC;
+  --vivent-danger: #B42318;
+  --vivent-danger-soft: #FEF3F2;
+  --vivent-radius-md: 12px;
+  --vivent-radius-lg: 16px;
+  --vivent-radius-xl: 24px;
+  --vivent-shadow-card: 0 24px 56px rgba(35, 66, 184, 0.10), 0 4px 16px rgba(23, 32, 51, 0.05);
+}

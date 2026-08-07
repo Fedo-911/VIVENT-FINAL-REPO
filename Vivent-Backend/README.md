@@ -95,7 +95,7 @@ python seed.py
 
 `seed.py` creates:
 
-- Plans: `Basic`, `Normal`, `Premium`
+- Plans: `Basic`, `Standard`, `Premium`
 - Admin: `admin@vivent.com` with password `Admin123!`
 
 `seed_mock_data.py` can add demo data for local development.
@@ -131,7 +131,7 @@ The canonical schema is [schema.sql](./schema.sql).
 | Table | Purpose |
 | --- | --- |
 | `users` | App users, bcrypt hashes, role, and active flag. |
-| `plans` | Basic/Normal/Premium plans and JSON facilities. |
+| `plans` | Basic/Standard/Premium plans and JSON facilities. |
 | `user_subscriptions` | Active or cancelled user plan subscriptions. |
 | `pending_events` | Event submissions waiting for admin moderation. |
 | `events` | Approved or completed public events. |
@@ -295,7 +295,7 @@ Ticket price is read from `event.venue_details.ticket_price` when available; oth
 - Pending event status: `pending`.
 - Payment amount: greater than 0.
 - Discussion message: 1-5000 characters.
-- Plan names allowed by schema: `Basic`, `Normal`, `Premium`; helper validation allows non-empty 2-100 character names, but the database constraint is stricter.
+- Plan names allowed by schema: `Basic`, `Standard`, `Premium`; helper validation allows non-empty 2-100 character names, but the database constraint is stricter.
 - Social link platforms: `facebook`, `instagram`, `linkedin`, `twitter`.
 - Ad request platforms: `instagram`, `facebook`, `linkedin`, `tiktok`, `whatsapp`, `offline_posters`.
 

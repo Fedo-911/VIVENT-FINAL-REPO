@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from dependencies import get_current_user
 from schemas import LoginRequest, MessageResponse, RegisterRequest, TokenResponse, UserOut
 from supabase_client import supabase
-from utils.helpers import utc_now_iso, validate_role
+from utils.helpers import notify_admins, utc_now_iso, validate_role
 from utils.jwt_handler import create_access_token
 from utils.passwords import hash_password, verify_password
 
@@ -70,7 +70,13 @@ def register(payload: RegisterRequest) -> dict:
         "updated_at": utc_now_iso(),
     }
     result = supabase.table("users").insert(user_data).execute()
-    return result.data[0]
+    user = result.data[0]
+    notify_admins(
+        "New Business Registered" if user["role"] == "business" else "New User Registered",
+        f"{user['full_name']} registered as a {user['role']}.",
+        notification_type="user_registered", reference_id=user["id"], reference_type="profile",
+    )
+    return user
 
 
 @router.post("/login", response_model=TokenResponse)

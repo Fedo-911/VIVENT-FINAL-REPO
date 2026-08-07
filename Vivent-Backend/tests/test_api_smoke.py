@@ -178,7 +178,7 @@ def test_rejected_event_never_enters_public_events(client, tokens):
             'start_date': '2026-07-01T10:00:00+00:00',
             'end_date': '2026-07-01T12:00:00+00:00',
             'location': 'Karachi',
-            'venue_details': {'hall': 'B2'},
+            'venue_details': {'hall': 'B2', 'ticket_price': 450},
             'plan_id': plan_id,
             'max_participants': 40,
         },
@@ -208,6 +208,29 @@ def test_rejected_event_never_enters_public_events(client, tokens):
         for item in client.get('/admin/events/pending', headers=auth_header(tokens['admin'])).json()
     )
 
+
+def test_ticket_first_event_uses_the_event_price_column(client, tokens):
+    plan_id = client.get('/plans').json()[0]['id']
+    response = client.post(
+        '/events',
+        headers=auth_header(tokens['business']),
+        json={
+            'title': 'Priced Food Event',
+            'description': 'A food event with an explicit database ticket price.',
+            'category': 'food',
+            'start_date': '2026-07-10T10:00:00+00:00',
+            'end_date': '2026-07-10T12:00:00+00:00',
+            'location': 'Lahore',
+            'price': 700,
+            'venue_details': {'hall': 'C1'},
+            'plan_id': plan_id,
+            'max_participants': 40,
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()['price'] == 700
+    assert response.json()['ticket_price'] == 700
 
 def test_meetings_notifications_analytics_and_records_smoke(client, tokens):
     seeded_event_id = '66666666-6666-6666-6666-666666666666'
@@ -276,6 +299,99 @@ def test_negative_access_control_smoke(client, tokens):
         },
     )
     assert response.status_code == 400
+
+
+def test_contact_form_public_submit_and_admin_management(client, tokens):
+    payload = {
+        'name': 'John Doe',
+        'email': 'John.Doe@Example.com',
+        'phone': '+923001234567',
+        'service': 'Business Partnership',
+        'message': 'I would like to discuss a business partnership with the VIVENT team.',
+    }
+
+    response = client.post('/contact', json=payload)
+    assert response.status_code == 201
+    created = response.json()
+    assert created['email'] == 'john.doe@example.com'
+    assert created['status'] == 'New'
+
+    response = client.get('/contact', headers=auth_header(tokens['student']))
+    assert response.status_code == 403
+
+    response = client.get('/contact', headers=auth_header(tokens['admin']))
+    assert response.status_code == 200
+    messages = response.json()
+    assert len(messages) == 1
+    assert messages[0]['id'] == created['id']
+
+    response = client.patch(
+        f"/contact/{created['id']}/status",
+        headers=auth_header(tokens['admin']),
+        json={'status': 'In Progress'},
+    )
+    assert response.status_code == 200
+    assert response.json()['status'] == 'In Progress'
+
+    notifications = client.get('/notifications', headers=auth_header(tokens['admin'])).json()
+    assert any('New contact inquiry received from John Doe.' == item['message'] for item in notifications)
+
+    response = client.delete(f"/contact/{created['id']}", headers=auth_header(tokens['admin']))
+    assert response.status_code == 200
+
+
+def test_contact_form_rejects_invalid_data(client):
+    response = client.post(
+        '/contact',
+        json={
+            'name': 'Jo',
+            'email': 'not-an-email',
+            'phone': '123-456',
+            'service': 'Unknown',
+            'message': 'Too short',
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_admin_can_reply_to_owned_contact_inquiry(client, tokens):
+    payload = {
+        'name': 'Student User',
+        'email': 'student@example.com',
+        'phone': '+923001234567',
+        'service': 'General Inquiry',
+        'message': 'Please share more information about upcoming VIVENT events.',
+    }
+    created = client.post('/contact', json=payload, headers=auth_header(tokens['student']))
+    assert created.status_code == 201
+    inquiry_id = created.json()['id']
+
+    forbidden = client.post(
+        f'/contact/{inquiry_id}/reply',
+        headers=auth_header(tokens['student']),
+        json={'reply': 'This must not be allowed.'},
+    )
+    assert forbidden.status_code == 403
+
+    response = client.post(
+        f'/contact/{inquiry_id}/reply',
+        headers=auth_header(tokens['admin']),
+        json={'reply': 'Thank you. Event registrations will open next week.'},
+    )
+    assert response.status_code == 200
+    assert response.json() == {'success': True}
+
+    mine = client.get('/contact/mine', headers=auth_header(tokens['student']))
+    assert mine.status_code == 200
+    conversation = mine.json()[0]
+    assert conversation['admin_reply'] == 'Thank you. Event registrations will open next week.'
+    assert conversation['is_replied'] is True
+    assert conversation['status'] == 'Replied'
+
+    notifications = client.get('/notifications', headers=auth_header(tokens['student'])).json()
+    notification = next(item for item in notifications if item['reference_id'] == inquiry_id)
+    assert notification['type'] == 'contact_reply'
+    assert notification['is_read'] is False
 
 
 def test_public_auth_does_not_issue_admin_sessions(client):

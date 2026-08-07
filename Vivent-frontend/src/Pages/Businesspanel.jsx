@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import {
   FaBriefcase,
@@ -22,7 +22,9 @@ import {
   analyticsApi,
   recordsApi,
   subscriptionsApi,
+  paymentsApi,
 } from "../utils/api";
+import PromotionCampaignSetupWizard from "../components/PromotionCampaignSetupWizard";
 
 // ─── Category helpers ─────────────────────────────────────────────────────────
 
@@ -74,45 +76,6 @@ const availableEvents = [
   },
 ];
 
-const promotionPlans = [
-  {
-    name: "Basic Plan",
-    price: "$60",
-    posts: "7 Posts on Social Media",
-    features: [
-      "All starter features +",
-      "Social media strategy",
-      "Content Creation",
-      "On Facebook, Instagram",
-    ],
-  },
-  {
-    name: "Standard Plan",
-    price: "$80",
-    posts: "12 Posts on Social Media",
-    features: [
-      "All starter features +",
-      "Social media strategy",
-      "Content Creation",
-      "On Facebook, Instagram",
-      "Additional TikTok",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Premium Plan",
-    price: "$100",
-    posts: "15 Posts on Social Media",
-    features: [
-      "All starter features +",
-      "Social media strategy",
-      "Content Creation",
-      "On Facebook, Instagram and TikTok",
-      "Additional Linkedin Integration",
-    ],
-  },
-];
-
 const sidebarButton =
   "flex min-h-11 w-full items-center justify-between gap-3 bg-blue-800 px-3.5 py-2.5 text-left text-sm font-semibold text-white shadow-lg transition duration-300 hover:bg-blue-900";
 
@@ -122,11 +85,33 @@ const subButton =
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-800 focus:ring-2 focus:ring-blue-100";
 
+// Convert the form's human-friendly time (for example, "9:00 AM") to the
+// 24-hour format required when building the backend ISO timestamp.
+const normalizeEventTime = (value) => {
+  const time = String(value || "").trim().toUpperCase();
+  const match = time.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/);
+  if (!match) return null;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2] || "00");
+  const meridiem = match[3];
+
+  if (minute > 59 || (meridiem && (hour < 1 || hour > 12)) || (!meridiem && hour > 23)) {
+    return null;
+  }
+  if (meridiem) {
+    if (hour === 12) hour = 0;
+    if (meridiem === "PM") hour += 12;
+  }
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const Businesspanel = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState("dashboard");
+  const location = useLocation();
+  const [activeView, setActiveView] = useState(() => new URLSearchParams(location.search).get("view") === "social" ? "social" : "dashboard");
   const [recordOpen, setRecordOpen] = useState(false);
 
   // Real data from backend
@@ -208,16 +193,44 @@ export const Businesspanel = () => {
     setApiError("");
     try {
       const plan = plans.find(
-        (p) => p.name.toLowerCase() === (form.plan || "basic").toLowerCase()
+        (p) => p.name.toLowerCase().replace(/\s+plan$/, "") === (form.plan || "basic").toLowerCase().replace(/\s+plan$/, "")
       );
       if (!plan && plans.length > 0) {
         setApiError("Please select a valid plan.");
         return;
       }
       const planId = plan?.id || (plans[0]?.id ?? "");
+      if (!planId) {
+        setApiError("Promotion plans are still loading. Please try again in a moment.");
+        return;
+      }
+
+      if (String(form.title || "").trim().length < 3) {
+        setApiError("Event title must be at least 3 characters.");
+        return;
+      }
+      if (String(form.description || "").trim().length < 10) {
+        setApiError("Description must be at least 10 characters.");
+        return;
+      }
 
       const backendCategory = CATEGORY_MAP[form.category] || form.category;
-      const startDate = new Date(`${form.date}T${form.time || "10:00"}:00+05:00`).toISOString();
+      const ticketPrice = Number(form.ticketPrice);
+      if (["food", "educational"].includes(backendCategory) && (!Number.isFinite(ticketPrice) || ticketPrice <= 0)) {
+        setApiError("Food and educational events require a ticket price greater than zero.");
+        return;
+      }
+      const normalizedTime = normalizeEventTime(form.time);
+      if (!form.date || !normalizedTime) {
+        setApiError("Please enter a valid time, such as 9:00 AM.");
+        return;
+      }
+      const startDateValue = new Date(`${form.date}T${normalizedTime}:00+05:00`);
+      if (Number.isNaN(startDateValue.getTime())) {
+        setApiError("Please enter a valid event date and time.");
+        return;
+      }
+      const startDate = startDateValue.toISOString();
       const endDate = new Date(
         new Date(startDate).getTime() + 2 * 60 * 60 * 1000
       ).toISOString();
@@ -231,10 +244,11 @@ export const Businesspanel = () => {
         location: form.venue || "TBD",
         plan_id: planId,
         max_participants: 200,
+        price: Number.isFinite(ticketPrice) ? ticketPrice : null,
         venue_details: {
           company: form.company,
           image_url: form.image || "",
-          ticket_price: Number(form.ticketPrice) || 0,
+          ticket_price: Number.isFinite(ticketPrice) ? ticketPrice : 0,
           planned_posts: Number(form.posts) || 7,
         },
       };
@@ -260,10 +274,11 @@ export const Businesspanel = () => {
         description: form.description,
         category: backendCategory,
         location: form.venue,
+        price: Number(form.ticketPrice),
         venue_details: {
           company: form.company,
           image_url: form.image,
-          ticket_price: Number(form.ticketPrice) || 0,
+          ticket_price: Number(form.ticketPrice),
           planned_posts: Number(form.posts) || 7,
         },
       };
@@ -702,7 +717,7 @@ const AddEventPanel = ({
                   ? plans.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)
                   : <>
                       <option>Basic</option>
-                      <option>Normal</option>
+                      <option>Standard</option>
                       <option>Premium</option>
                     </>
                 }
@@ -786,7 +801,7 @@ const AddEventPanel = ({
                                   ? new Date(event.start_date).toISOString().split("T")[0]
                                   : "",
                                 time: "10:00 AM",
-                                ticketPrice: event.venue_details?.ticket_price || 0,
+                                ticketPrice: event.ticket_price ?? "",
                                 image: event.venue_details?.image_url || "",
                                 description: event.description || "",
                                 posts: event.venue_details?.planned_posts || 7,
@@ -822,11 +837,13 @@ const AddEventPanel = ({
 };
 
 const SocialPromotion = () => {
+  const location = useLocation();
   const [plans, setPlans] = useState([]);
   const [activePlanId, setActivePlanId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectingId, setSelectingId] = useState(null);
   const [message, setMessage] = useState("");
+  const [setupOpen, setSetupOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -845,11 +862,19 @@ const SocialPromotion = () => {
     return () => clearTimeout(t);
   }, [message]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment") === "success") {
+      setSetupOpen(true);
+      setMessage("Payment successful. Complete your promotion campaign setup.");
+    }
+  }, [location.search]);
+
   const handleSelectPlan = async (planId) => {
     setSelectingId(planId);
     try {
-      const res = await subscriptionsApi.subscribe(planId);
-      setActivePlanId(res.plan_id);
+      const res = await paymentsApi.createSubscriptionCheckoutSession(planId, `${window.location.origin}/businesspanel?view=social&payment=success`, `${window.location.origin}/businesspanel?view=social&payment=cancelled`);
+      window.location.assign(res.checkout_url);
       setMessage(`✓ ${res.plan?.name || "Plan"} activated successfully!`);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
@@ -861,7 +886,7 @@ const SocialPromotion = () => {
   const displayPlans = plans.map((p, idx) => ({
     id: p.id,
     name: p.name,
-    price: `$${parseFloat(p.price).toFixed(0)}`,
+    price: `PKR ${(parseFloat(p.price) * 2).toLocaleString("en-PK", { maximumFractionDigits: 0 })}`,
     posts: p.facilities?.posts || `${7 + idx * 5} Posts on Social Media`,
     features: p.facilities?.features || [
       "All starter features +",
@@ -912,11 +937,6 @@ const SocialPromotion = () => {
                     Active
                   </span>
                 )}
-                {!isActive && plan.highlighted && (
-                  <span className="rounded-lg bg-blue-800 px-2.5 py-1.5 text-[11px] font-black text-white">
-                    Popular
-                  </span>
-                )}
               </div>
 
               <p className="mb-4 text-3xl font-black text-blue-800">
@@ -945,10 +965,24 @@ const SocialPromotion = () => {
               >
                 {isSelecting ? "Activating…" : isActive ? "Current Plan" : "Select Plan"}
               </button>
+              {isActive && (
+                <button
+                  className="mt-3 w-full rounded-xl bg-blue-50 px-4 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-100"
+                  onClick={() => setSetupOpen(true)}
+                  type="button"
+                >
+                  Setup Promotion Campaign
+                </button>
+              )}
             </article>
           );
         })}
       </div>
+      <PromotionCampaignSetupWizard
+        open={setupOpen}
+        onClose={() => setSetupOpen(false)}
+        onCompleted={() => setMessage("Campaign setup saved. Admin can now manage it in Post Management.")}
+      />
     </section>
   );
 };

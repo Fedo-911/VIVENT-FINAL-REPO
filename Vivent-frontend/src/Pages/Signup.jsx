@@ -22,7 +22,9 @@ const Signup = ({ onAuth }) => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectPath = location.state?.from?.pathname || '/';
+  const redirectPath = location.state?.from
+    ? `${location.state.from.pathname || '/'}${location.state.from.search || ''}`
+    : '/';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,7 +56,7 @@ const Signup = ({ onAuth }) => {
       localStorage.setItem("viventUser", JSON.stringify(user));
 
       onAuth(role);
-      navigate(rolePath(role) || redirectPath, { replace: true });
+      navigate(redirectPath || rolePath(role), { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

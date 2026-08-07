@@ -211,7 +211,7 @@ def _local_generate_insights(metrics: dict) -> dict:
     md = f"""# 📊 VIVENT Platform Analytics Report
 
 ## Executive Summary
-The platform currently hosts **{total_events} total events** generating **${total_revenue:,.2f}** in total revenue.
+The platform currently hosts **{total_events} total events** generating **PKR {total_revenue:,.2f}** in total revenue.
 
 ---
 
@@ -220,8 +220,8 @@ The platform currently hosts **{total_events} total events** generating **${tota
 | Metric | Value |
 |--------|-------|
 | Total Events | {total_events} |
-| Total Revenue | ${total_revenue:,.2f} |
-| Average Revenue per Event | ${avg_revenue:,.2f} |
+| Total Revenue | PKR {total_revenue:,.2f} |
+| Average Revenue per Event | PKR {avg_revenue:,.2f} |
 | Approval Rate | {approval_rate:.1f}% |
 | Pending Events | {pending} |
 
@@ -248,7 +248,7 @@ The platform currently hosts **{total_events} total events** generating **${tota
 
 1. **Scale {top_category.replace('_', ' ').title()} Events**: This category leads with {top_category_count} events. Consider premium pricing tiers for this segment.
 2. **Address Pending Queue**: {pending} events are awaiting approval. Faster turnaround improves user satisfaction.
-3. **Revenue Optimization**: At ${avg_revenue:,.2f} per event, there's opportunity to increase monetization through premium plan upsells.
+3. **Revenue Optimization**: At PKR {avg_revenue:,.2f} per event, there's opportunity to increase monetization through premium plan upsells.
 4. **Engagement Focus**: The most popular event has {top_event_regs} registrations — replicate its success factors across other events.
 """
 
@@ -279,7 +279,7 @@ def generate_ai_admin_insights(metrics: dict) -> dict:
             f"You are a business intelligence analyst for VIVENT, an event management platform.\n\n"
             f"Analyze these platform metrics and provide a professional markdown report:\n\n"
             f"- Total Events: {total_events}\n"
-            f"- Total Revenue: ${total_revenue:,.2f}\n"
+            f"- Total Revenue: PKR {total_revenue:,.2f}\n"
             f"- Events by Category: {events_by_category}\n"
             f"- Events by Status: {events_by_status}\n\n"
             f"Provide: Executive Summary, KPIs table, Category Analysis, Trend Insights, "

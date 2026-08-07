@@ -10,10 +10,12 @@ from schemas.analytics import (
 )
 from schemas.auth import LoginRequest, RegisterRequest, TokenResponse
 from schemas.common import MessageResponse
+from schemas.contact import ContactMessageCreate, ContactMessageOut, ContactReplyCreate, ContactStatusUpdate
 from schemas.discussions import DiscussionCreate, DiscussionOut
 from schemas.events import EventCreate, EventListResponse, EventOut, EventUpdate
 from schemas.notifications import NotificationOut
 from schemas.payments import PaymentInitiate, PaymentOut, StripeSessionCreate, StripeSessionOut
+from schemas.campaigns import GeneratedPostAction, SocialAutomationStart, WorkflowResult
 from schemas.plans import PlanCreate, PlanOut, PlanUpdate
 from schemas.records import FinancialRecordResponse, MyEventsResponse
 from schemas.registrations import RegistrationCreate, RegistrationOut
@@ -30,6 +32,10 @@ __all__ = [
     "AdminDashboardResponse",
     "BusinessDashboardResponse",
     "ChartPoint",
+    "ContactMessageCreate",
+    "ContactMessageOut",
+    "ContactReplyCreate",
+    "ContactStatusUpdate",
     "DiscussionCreate",
     "DiscussionOut",
     "EventCreate",
@@ -56,6 +62,9 @@ __all__ = [
     "StudentDashboardResponse",
     "StripeSessionCreate",
     "StripeSessionOut",
+    "GeneratedPostAction",
+    "SocialAutomationStart",
+    "WorkflowResult",
     "SubscriptionCreate",
     "SubscriptionOut",
     "PlanSummary",
@@ -63,4 +72,3 @@ __all__ = [
     "UserOut",
     "UserUpdate",
 ]
-

@@ -40,7 +40,15 @@ async function request(method, path, body = null, options = {}) {
     let errorMessage = `Server error: ${response.status}`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.detail || errorData.message || errorMessage;
+      const detail = errorData.detail || errorData.message;
+      errorMessage = Array.isArray(detail)
+        ? detail
+            .map((item) => {
+              const field = Array.isArray(item.loc) ? item.loc.join(".") : "Event";
+              return `${field}: ${item.msg}`;
+            })
+            .join("; ")
+        : detail || errorMessage;
     } catch {
       // Keep the HTTP status message when the response body is not JSON.
     }
@@ -84,19 +92,28 @@ export const eventsApi = {
   list: ({
     category,
     status,
+    start_date,
+    end_date,
     page = 1,
     page_size = 20,
     search,
   } = {}) =>
-    get("/events", { category, status, page, page_size, q: search }),
+    get("/events", { category, status, start_date, end_date, page, page_size, q: search }),
 
   get: (id) => get(`/events/${id}`),
 
   listByStatuses: async ({ statuses = ["approved"], ...params } = {}) => {
-    const responses = await Promise.all(
-      statuses.map((status) => eventsApi.list({ ...params, status }))
+    const responses = await Promise.all(statuses.map((status) => eventsApi.list({ ...params, status })));
+    const additionalPages = await Promise.all(
+      responses.flatMap((response, index) => {
+        const pageSize = Number(response?.page_size || params.page_size || 20);
+        const totalPages = Math.ceil(Number(response?.total || 0) / pageSize);
+        return Array.from({ length: Math.max(0, totalPages - 1) }, (_, pageIndex) =>
+          eventsApi.list({ ...params, status: statuses[index], page: pageIndex + 2, page_size: pageSize })
+        );
+      })
     );
-    const items = responses
+    const items = [...responses, ...additionalPages]
       .flatMap((response) => response?.items || [])
       .sort((first, second) =>
         String(first.start_date || "").localeCompare(String(second.start_date || ""))
@@ -108,11 +125,23 @@ export const eventsApi = {
     };
   },
 
-  create: (payload) => post("/events", payload),
+  create: async (payload) => {
+    const result = await post("/events", payload);
+    window.dispatchEvent(new CustomEvent("vivent:events-changed", { detail: { action: "created", event: result } }));
+    return result;
+  },
 
-  update: (id, payload) => patch(`/events/${id}`, payload),
+  update: async (id, payload) => {
+    const result = await patch(`/events/${id}`, payload);
+    window.dispatchEvent(new CustomEvent("vivent:events-changed", { detail: { action: "updated", event: result } }));
+    return result;
+  },
 
-  delete: (id) => del(`/events/${id}`),
+  delete: async (id) => {
+    const result = await del(`/events/${id}`);
+    window.dispatchEvent(new CustomEvent("vivent:events-changed", { detail: { action: "deleted", id } }));
+    return result;
+  },
 
   generateDescription: (notes, category, tone = "professional") =>
     post("/events/ai/generate-description", { notes, category, tone }),
@@ -121,8 +150,11 @@ export const eventsApi = {
 // ─── Registrations ────────────────────────────────────────────────────────────
 
 export const registrationsApi = {
-  register: (eventId, role = "participant") =>
-    post(`/events/${eventId}/register`, { role }),
+  register: async (eventId, role = "participant") => {
+    const registration = await post(`/events/${eventId}/register`, { role_at_event: role });
+    window.dispatchEvent(new CustomEvent("vivent:registration-created", { detail: registration }));
+    return registration;
+  },
 
   myRegistrations: () => get("/registrations/my"),
 
@@ -146,6 +178,13 @@ export const paymentsApi = {
       cancel_url: cancelUrl,
     }),
 
+  createSubscriptionCheckoutSession: (planId, successUrl, cancelUrl) =>
+    post("/payments/stripe/create-checkout-session", {
+      plan_id: planId,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    }),
+
   confirm: (transactionId) =>
     post("/payments/confirm", { transaction_id: transactionId }),
 
@@ -165,9 +204,29 @@ export const analyticsApi = {
 
 export const adminApi = {
   pendingEvents: () => get("/admin/events/pending"),
-  approveEvent: (id) => request("PUT", `/admin/events/${id}/approve`),
-  rejectEvent: (id, detail) => request("PUT", `/admin/events/${id}/reject`, { detail }),
+  approveEvent: async (id) => {
+    const result = await request("PUT", `/admin/events/${id}/approve`);
+    window.dispatchEvent(new CustomEvent("vivent:events-changed", { detail: { action: "approved", event: result } }));
+    return result;
+  },
+  rejectEvent: async (id, detail) => {
+    const result = await request("PUT", `/admin/events/${id}/reject`, { detail });
+    window.dispatchEvent(new CustomEvent("vivent:events-changed", { detail: { action: "rejected", id } }));
+    return result;
+  },
   dashboard: () => analyticsApi.adminDashboard(),
+};
+
+// Contact Messages
+
+export const contactApi = {
+  submit: (payload) => post("/contact", payload),
+  list: () => get("/contact"),
+  listMine: () => get("/contact/mine"),
+  get: (id) => get(`/contact/${id}`),
+  reply: (id, reply) => post(`/contact/${id}/reply`, { reply }),
+  updateStatus: (id, status) => patch(`/contact/${id}/status`, { status }),
+  delete: (id) => del(`/contact/${id}`),
 };
 
 // ─── Records ──────────────────────────────────────────────────────────────────
@@ -229,6 +288,49 @@ export const subscriptionsApi = {
   cancel: () => patch("/subscriptions/cancel", {}),
 };
 
+export const notificationsApi = {
+  list: ({ limit = 20, offset = 0 } = {}) => get("/notifications", { limit, offset }),
+  unreadCount: () => get("/notifications/unread-count"),
+  markRead: (id) => patch(`/notifications/${id}/read`, {}),
+  markAllRead: () => patch("/notifications/read-all", {}),
+  delete: (id) => del(`/notifications/${id}`),
+  clearAll: () => del("/notifications/clear-all"),
+};
+
+export const campaignsApi = {
+  list: () => get("/automation/social-media/campaigns"),
+  detail: (id) => get(`/automation/social-media/campaigns/${id}`),
+  start: (campaignId) => post("/automation/social-media/start", { campaign_id: campaignId }),
+  postAction: (postId, action, scheduledAt) =>
+    patch(`/automation/social-media/posts/${postId}`, { action, ...(scheduledAt ? { scheduled_at: scheduledAt } : {}) }),
+};
+
+export const campaignSetupApi = {
+  create: (payload) => post("/campaign/setup", payload),
+  get: (userId) => get(`/campaign/setup/${userId}`),
+  update: (userId, payload) => request("PUT", `/campaign/setup/${userId}`, payload),
+  socialAccounts: (userId) => get(`/campaign/social-accounts/${userId}`),
+  connectPlatform: (payload) => post("/campaign/connect-platform", payload),
+  disconnectPlatform: (platform) => post("/campaign/disconnect-platform", { platform }),
+  preferences: (userId) => get(`/campaign/preferences/${userId}`),
+};
+
+export const adminPostManagementApi = {
+  users: (params) => get("/admin/post-management/users", params),
+  user: (userId) => get(`/admin/post-management/user/${userId}`),
+  campaign: (userId) => get(`/admin/post-management/user/${userId}/campaign`),
+  socialAccounts: (userId) => get(`/admin/post-management/user/${userId}/social-accounts`),
+  analytics: (userId) => get(`/admin/post-management/user/${userId}/analytics`),
+  posts: (userId) => get(`/admin/post-management/user/${userId}/posts`),
+  history: (userId) => get(`/admin/post-management/user/${userId}/history`),
+  runAi: (userId) => post(`/admin/post-management/user/${userId}/run-ai`, {}),
+  pause: (userId) => post(`/admin/post-management/user/${userId}/pause`, {}),
+  resume: (userId) => post(`/admin/post-management/user/${userId}/resume`, {}),
+  generateContent: (userId) => post(`/admin/post-management/user/${userId}/generate-content`, {}),
+  publishApproved: (userId) => post(`/admin/post-management/user/${userId}/publish`, {}),
+  deleteCampaign: (userId) => del(`/admin/post-management/user/${userId}/campaign`),
+};
+
 // ─── Default export (backward-compatible) ────────────────────────────────────
 
 const api = {
@@ -238,12 +340,16 @@ const api = {
   payments: paymentsApi,
   analytics: analyticsApi,
   admin: adminApi,
+  contact: contactApi,
   records: recordsApi,
   plans: plansApi,
   social: socialApi,
   ads: adsApi,
   ai: aiApi,
   subscriptions: subscriptionsApi,
+  notifications: notificationsApi,
+  campaignSetup: campaignSetupApi,
+  adminPostManagement: adminPostManagementApi,
 };
 
 export default api;

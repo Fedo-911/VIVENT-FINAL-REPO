@@ -15,6 +15,7 @@ class PlanBase(BaseModel):
     price: Decimal = Field(ge=0)
     facilities: dict[str, Any]
     is_active: bool = True
+    currency: str = "PKR"
 
 
 class PlanCreate(PlanBase):
@@ -36,4 +37,3 @@ class PlanOut(PlanBase):
     id: str
     created_at: str | None = None
     updated_at: str | None = None
-

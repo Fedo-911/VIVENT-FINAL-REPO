@@ -16,6 +16,7 @@ class EventCreate(BaseModel):
     start_date: str
     end_date: str
     location: str
+    price: float | None = Field(default=None, gt=0)
     venue_details: dict[str, Any] | None = None
     plan_id: str
     max_participants: int = Field(gt=0)
@@ -31,6 +32,7 @@ class EventUpdate(BaseModel):
     start_date: str | None = None
     end_date: str | None = None
     location: str | None = None
+    price: float | None = Field(default=None, gt=0)
     venue_details: dict[str, Any] | None = None
     plan_id: str | None = None
     max_participants: int | None = Field(default=None, gt=0)
@@ -47,7 +49,11 @@ class EventOut(BaseModel):
     start_date: str
     end_date: str
     location: str
+    price: float | None = None
     venue_details: dict[str, Any] | None = None
+    # The API exposes the ticket price explicitly so clients do not need to
+    # infer it from an implementation-detail JSON blob.
+    ticket_price: float | None = None
     created_by: str
     approved_by: str | None = None
     plan_id: str
@@ -66,4 +72,3 @@ class EventListResponse(BaseModel):
     total: int
     page: int
     page_size: int
-

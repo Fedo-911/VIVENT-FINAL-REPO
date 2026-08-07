@@ -11,9 +11,13 @@ from postgrest.exceptions import APIError
 from config import settings
 from routers import (
     admin_events,
+    admin_post_management,
+    campaigns,
+    campaign_setup,
     ads,
     analytics,
     auth,
+    contact,
     discussions,
     events,
     notifications,
@@ -39,9 +43,13 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(contact.router)
 app.include_router(users.router)
 app.include_router(events.router)
+app.include_router(events.public_router)
 app.include_router(admin_events.router)
+app.include_router(admin_post_management.router)
+app.include_router(campaign_setup.router)
 app.include_router(plans.router)
 app.include_router(registrations.router)
 app.include_router(payments.router)
@@ -52,6 +60,7 @@ app.include_router(analytics.router)
 app.include_router(records.router)
 app.include_router(social.router)
 app.include_router(subscriptions.router)
+app.include_router(campaigns.router)
 
 
 @app.on_event("startup")

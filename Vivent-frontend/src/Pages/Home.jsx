@@ -247,6 +247,7 @@ const Home = () => {
             <div className="h-full rounded-2xl bg-gradient-to-br from-blue-200 to-blue-400 p-[2px] transition duration-300">
               <div className="flex h-full min-h-[420px] flex-col justify-between rounded-2xl bg-white p-8 shadow-md transition hover:shadow-2xl">
                 <h3 className="mb-6 text-2xl font-bold text-blue-800">Basic</h3>
+                {/* <p className="mb-4 text-3xl font-black text-blue-800">PKR 5,539 <span className="text-sm text-gray-500">/ month</span></p> */}
 
                 <ul className="mb-6 space-y-3 text-left text-sm text-gray-600">
                   <li>✓ Social Media Strategy</li>
@@ -271,6 +272,7 @@ const Home = () => {
             <div className="h-full rounded-2xl bg-gradient-to-br from-blue-500 to-blue-800 p-[2px] transition duration-300">
               <div className="flex h-full min-h-[420px] flex-col justify-between rounded-2xl border border-blue-200 bg-white p-8 shadow-xl">
                 <h3 className="mb-6 text-2xl font-bold text-blue-800">Standard</h3>
+                {/* <p className="mb-4 text-3xl font-black text-blue-800">PKR 8,309 <span className="text-sm text-gray-500">/ month</span></p> */}
 
                 <ul className="mb-6 space-y-3 text-left text-sm text-gray-600">
                   <li>✓ Social Media Strategy</li>
@@ -287,7 +289,7 @@ const Home = () => {
                 </div>
 
                 <button className="mt-auto rounded-lg bg-blue-800 px-5 py-2 text-white shadow-md transition hover:bg-blue-900">
-                  Most Popular
+                  Choose Plan
                 </button>
               </div>
             </div>
@@ -296,6 +298,7 @@ const Home = () => {
             <div className="h-full rounded-2xl bg-gradient-to-br from-indigo-400 to-blue-700 p-[2px] transition duration-300">
               <div className="flex h-full min-h-[420px] flex-col justify-between rounded-2xl bg-white p-8 shadow-md transition hover:shadow-2xl">
                 <h3 className="mb-6 text-2xl font-bold text-blue-800">Premium</h3>
+                {/* <p className="mb-4 text-3xl font-black text-blue-800">PKR 13,349 <span className="text-sm text-gray-500">/ month</span></p> */}
 
                 <ul className="mb-6 space-y-3 text-left text-sm text-gray-600">
                   <li>✓ Social Media Strategy</li>

@@ -1,0 +1,637 @@
+INFO:     127.0.0.1:58760 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57880 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58760 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57880 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60541 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63910 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52768 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63910 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60541 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63910 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52768 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63910 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63847 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57191 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57191 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63847 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63857 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59251 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60340 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64200 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60340 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52349 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60571 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60571 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50974 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57147 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62043 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57147 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62043 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62133 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56265 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56265 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62133 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55842 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59766 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59766 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55842 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59766 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59766 - "OPTIONS /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55842 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59766 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64781 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64781 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64781 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64781 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64781 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "OPTIONS /events?page=1&page_size=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55502 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63912 - "OPTIONS /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52759 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52759 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:64781 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63912 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55293 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63912 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60856 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60856 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64634 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64634 - "OPTIONS /automation/social-media/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60856 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:59270 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55752 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64643 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60605 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59393 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50872 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57548 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55703 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55352 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55703 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54077 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53924 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60454 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51004 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51004 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62106 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51343 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55829 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59785 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64473 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65073 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57051 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64198 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58724 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57947 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61960 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63158 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60032 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59716 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59541 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63302 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60569 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52127 - "OPTIONS /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58589 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58449 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52127 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60569 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61643 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49244 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63602 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63602 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49244 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61643 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61643 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:61643 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63602 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49244 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53683 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60924 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63602 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49244 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60924 - "GET /contact HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:53683 - "GET /admin/events/pending HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:49244 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49244 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63602 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63602 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55247 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64287 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58672 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58672 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49927 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58075 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58077 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50360 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50360 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58077 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57450 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50360 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59470 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53792 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53792 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59470 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57829 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55203 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57642 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56244 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:62777 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:60350 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61335 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64352 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49382 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64247 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51420 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51420 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64247 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58293 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59020 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55719 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58489 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58489 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55719 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65294 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64174 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61163 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53318 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61729 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61163 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61163 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61729 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50565 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53403 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53403 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50565 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53403 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50565 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52783 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50360 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64413 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56094 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56094 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64413 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62367 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:53132 - "GET /automation/social-media/campaigns HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:51344 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49337 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49337 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51344 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52338 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56304 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51710 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58543 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53962 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57881 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50360 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57280 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56371 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52399 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55845 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52685 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57248 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56055 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53655 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56055 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:53655 - "GET /automation/social-media/campaigns HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:55088 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58135 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55088 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55111 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55088 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58135 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:55088 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:57949 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62993 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57949 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62993 - "OPTIONS /events?page=1&page_size=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63496 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59272 - "OPTIONS /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62993 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57787 - "OPTIONS /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55042 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:57787 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:57949 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63496 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59272 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57949 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57787 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63496 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59272 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57949 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59272 - "OPTIONS /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57949 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59272 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59272 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:57949 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:63496 - "OPTIONS /automation/social-media/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57787 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60903 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65468 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64568 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64295 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64568 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64295 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54631 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60654 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61080 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56421 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56421 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61080 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57723 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52586 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64364 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49253 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64364 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49253 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55097 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53757 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53757 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55097 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53136 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62778 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49281 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54550 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54550 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49281 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53500 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57004 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50809 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55237 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55237 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50809 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52069 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:60006 - "GET /automation/social-media/campaigns HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:62388 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:62388 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:61675 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62683 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57762 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57431 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56611 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62683 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57431 - "GET /admin/events/pending HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:56611 - "GET /contact HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:62683 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62683 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63458 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49400 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52092 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56913 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57659 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60625 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63160 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52813 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54272 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60526 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60737 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50525 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57991 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50282 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63172 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54982 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52170 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51534 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56520 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56293 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49903 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51695 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59811 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54418 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55987 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59621 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61487 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61780 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58285 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53175 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56439 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58965 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64427 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58568 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62448 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65139 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62966 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51300 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56408 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55705 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54900 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59884 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51222 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60372 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51978 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62139 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63352 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59990 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59712 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63310 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50489 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59944 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56104 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64087 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60073 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57867 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53737 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58243 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58278 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55198 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65286 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64830 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58153 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63896 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58229 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57502 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57502 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56974 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59222 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54351 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58987 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54351 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58987 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63367 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60105 - "OPTIONS /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63367 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60105 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56607 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61157 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52700 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61153 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52955 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57649 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52475 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49911 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58689 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55118 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62645 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51522 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50365 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:59283 - "GET /automation/social-media/campaigns HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50601 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51437 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61455 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52279 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57228 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57863 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62735 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51718 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53615 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53067 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64290 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61967 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59009 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60384 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50185 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50185 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60384 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57819 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62759 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58637 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52832 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65284 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65029 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62281 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55567 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57512 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62452 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54487 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62650 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55720 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51442 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64786 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51566 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50160 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51640 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58228 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51732 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53023 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52145 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53098 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52928 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:62830 - "GET /automation/social-media/campaigns HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:62516 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:64046 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54154 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:52668 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54760 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62857 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59967 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53737 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54208 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54608 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63651 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56468 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51401 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51401 - "OPTIONS /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51401 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63651 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56468 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50646 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55858 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55858 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57286 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51320 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57286 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51320 - "OPTIONS /events?page=1&page_size=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53596 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55896 - "OPTIONS /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51320 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58981 - "OPTIONS /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62213 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:62213 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:57286 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55896 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53596 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55896 - "GET /admin/events/pending HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:53596 - "GET /contact HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:57286 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57286 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62213 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62213 - "OPTIONS /automation/social-media/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57286 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54628 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65327 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54628 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65327 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53012 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62821 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55789 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55789 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61790 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53711 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56977 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56359 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56359 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56977 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51787 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52790 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62113 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57786 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52389 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54864 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62132 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:62132 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52389 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57786 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54864 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58107 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52389 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62132 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59048 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58107 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59048 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59048 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59048 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58107 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58107 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62639 - "GET /automation/social-media/campaigns HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:51067 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:60802 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63401 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63401 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "POST /automation/social-media/start HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50433 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60288 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61877 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62063 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62063 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61877 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55838 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63888 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53148 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64700 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64700 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53148 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54280 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60236 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60236 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54280 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62601 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56028 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56127 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49306 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49306 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56127 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54504 - "OPTIONS /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54504 - "OPTIONS /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56905 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60615 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56905 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54504 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52147 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56565 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53848 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57792 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65415 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64942 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61592 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57023 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61496 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55919 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58229 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61315 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52908 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60263 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62196 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56014 - "GET /automation/social-media/campaigns HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63165 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54595 - "GET /automation/social-media/campaigns/329d4335-d7f9-497e-9c67-fdc9dcde4876 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59049 - "OPTIONS /auth/admin/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59049 - "POST /auth/admin/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56485 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64049 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58057 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62707 - "OPTIONS /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56485 - "OPTIONS /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64467 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58057 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62707 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "OPTIONS /events?page=1&page_size=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56485 - "OPTIONS /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64049 - "OPTIONS /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56485 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:56485 - "GET /events?page=1&page_size=200 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:58057 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62707 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64467 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64049 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64467 - "GET /contact HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /admin/events/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54165 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58419 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54165 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58419 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63548 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61805 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64010 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52916 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63020 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52916 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56610 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63231 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56610 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55822 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52289 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52289 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55822 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52289 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:55822 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:65160 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:56549 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50902 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58190 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65062 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60770 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65062 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59494 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62791 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61821 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53225 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63853 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51487 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:53098 - "GET /notifications/unread-count HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:52831 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61563 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58314 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54277 - "GET /notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51423 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58979 - "GET /notifications/unread-count HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53914 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54760 - "GET /notifications/unread-count HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62895 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62454 - "GET /notifications/unread-count HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58751 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57184 - "GET /notifications/unread-count HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58287 - "GET /notifications?limit=20&offset=0 HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55637 - "GET /notifications/unread-count HTTP/1.1" 503 Service Unavailable

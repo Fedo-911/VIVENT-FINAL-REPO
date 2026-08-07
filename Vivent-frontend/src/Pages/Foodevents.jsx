@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FaMapMarkerAlt, FaTimes, FaUtensils } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 import { eventsApi, registrationsApi, paymentsApi } from "../utils/api";
 
 const initialFoodForm = {
@@ -12,7 +13,9 @@ const initialFoodForm = {
   specialRequest: "",
 };
 
-const Foodevents = () => {
+const Foodevents = ({ isAuthenticated }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,8 +31,8 @@ const Foodevents = () => {
 
   const ticketText = useMemo(() => {
     if (!selectedTicket) return "";
-    const price = selectedTicket.venue_details?.ticket_price || 0;
-    return `PKR ${Number(price).toLocaleString()}`;
+    if (!Number.isFinite(selectedTicket.ticket_price)) return "Price unavailable";
+    return `PKR ${selectedTicket.ticket_price.toLocaleString("en-PK")}`;
   }, [selectedTicket]);
 
   useEffect(() => {
@@ -57,6 +60,7 @@ const Foodevents = () => {
   }, []);
 
   useEffect(() => {
+    if (!isAuthenticated) return undefined;
     let cancelled = false;
     Promise.all([paymentsApi.myPayments(), registrationsApi.myRegistrations()])
       .then(([payments, registrations]) => {
@@ -76,7 +80,7 @@ const Foodevents = () => {
         }
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -125,8 +129,17 @@ const Foodevents = () => {
     }
   };
 
+  const requireLogin = () => {
+    setPaymentResult("You need to log in to register or purchase a ticket.");
+    navigate("/login", { state: { from: location } });
+  };
+
   const handlePayConfirm = async () => {
     if (!selectedTicket) return;
+    if (!Number.isFinite(selectedTicket.ticket_price)) {
+      setPaymentResult("This event does not have a ticket price yet.");
+      return;
+    }
     setPayingId(selectedTicket.id);
     try {
       const returnUrl = `${window.location.origin}${window.location.pathname}?payment=success`;
@@ -216,6 +229,7 @@ const Foodevents = () => {
               const isRegistered = registeredIds.has(item.id);
               const isPaid = paidEventIds.has(item.id);
               const isCompleted = item.status === "completed";
+              const hasTicketPrice = Number.isFinite(item.ticket_price);
               return (
                 <article
                   className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
@@ -265,7 +279,6 @@ const Foodevents = () => {
                         {item.description ||
                           "Enjoy premium cuisines, live cooking experiences, cultural dishes, and exciting food festivals through VIVENT. Connect with food brands, chefs, and culinary experts."}
                       </p>
-
                       <div className="flex flex-wrap gap-3">
                         <button
                           className={`min-w-32 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 ${
@@ -278,6 +291,7 @@ const Foodevents = () => {
                           onClick={() => {
                             if (isCompleted) return;
                             if (isRegistered) return;
+                            if (!isAuthenticated) return requireLogin();
                             if (!isPaid) {
                               setPaymentResult("Please purchase a ticket before registering for this event.");
                               return;
@@ -289,24 +303,29 @@ const Foodevents = () => {
                           disabled={isCompleted || isRegistered}
                           type="button"
                         >
-                          {isCompleted ? "Completed" : isRegistered ? "Joined" : "Join Event"}
+                          {isCompleted ? "Completed" : isRegistered ? "Already Registered" : !isAuthenticated ? "Login to Register" : "Register"}
                         </button>
                         <button
                           className="min-w-32 rounded-full border border-blue-800 px-6 py-3 text-sm font-semibold text-blue-800 transition duration-300 hover:bg-blue-50"
                           onClick={() => {
+                            if (!isAuthenticated) return requireLogin();
                             if (isPaid) return;
                             if (isCompleted) {
                               setPaymentResult("This event has already been completed.");
+                              return;
+                            }
+                            if (!hasTicketPrice) {
+                              setPaymentResult("Ticket price is unavailable for this event.");
                               return;
                             }
                             setPaymentResult("");
                             setSelectedTicket(item);
                             setShowPaymentConfirm(false);
                           }}
-                          disabled={isPaid || isCompleted}
+                          disabled={isPaid || isCompleted || !hasTicketPrice}
                           type="button"
                         >
-                          {isCompleted ? "Closed" : isPaid ? "Purchased" : "Ticket"}
+                          {isCompleted ? "Closed" : isPaid ? "Purchased" : !isAuthenticated ? "Login to Purchase" : "Purchase Ticket"}
                         </button>
                       </div>
                     </div>

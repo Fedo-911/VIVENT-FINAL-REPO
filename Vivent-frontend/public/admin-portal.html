@@ -9,9 +9,10 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap"
     rel="stylesheet"
   />
+  <link href="/design-system.css" rel="stylesheet" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,28 +23,34 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
-      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 4% 5%, rgba(35, 66, 184, 0.10) 0, rgba(35, 66, 184, 0.10) 1px, transparent 28%),
+        radial-gradient(circle at 96% 90%, rgba(35, 66, 184, 0.12) 0, transparent 31%),
+        var(--vivent-page);
+      padding: 1.5rem;
     }
 
     .card {
-      background: rgba(255,255,255,0.04);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 24px;
+      position: relative;
+      z-index: 1;
+      background: var(--vivent-surface);
+      border: 1px solid rgba(217, 223, 232, 0.8);
+      border-radius: var(--vivent-radius-xl);
       width: 100%;
       max-width: 420px;
-      padding: 2.5rem;
-      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+      padding: 2.75rem;
+      box-shadow: var(--vivent-shadow-card);
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(239,68,68,0.15);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: #fca5a5;
+      background: var(--vivent-blue-soft);
+      border: 1px solid var(--vivent-blue-border);
+      color: var(--vivent-blue);
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.12em;
@@ -55,7 +62,7 @@
     .badge::before {
       content: '';
       width: 6px; height: 6px;
-      background: #ef4444;
+      background: var(--vivent-blue);
       border-radius: 50%;
       animation: pulse 1.5s infinite;
     }
@@ -65,17 +72,20 @@
     }
 
     h1 {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(1.75rem, 5vw, 2.125rem);
+      font-weight: 700;
+      color: var(--vivent-slate-950);
       letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin-bottom: 0.4rem;
+      line-height: 1.25;
+      margin-bottom: 0.625rem;
     }
+    h1 .brand { color: var(--vivent-blue); }
     .subtitle {
       font-size: 0.875rem;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 2rem;
+      color: var(--vivent-slate-500);
+      line-height: 1.6;
+      margin-bottom: 2.25rem;
     }
 
     label {
@@ -84,54 +94,54 @@
       font-weight: 600;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.5);
+      color: var(--vivent-slate-700);
       margin-bottom: 0.5rem;
     }
 
     input {
       width: 100%;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px;
+      background: var(--vivent-surface);
+      border: 1px solid var(--vivent-slate-300);
+      border-radius: var(--vivent-radius-md);
       padding: 0.875rem 1rem;
-      color: #fff;
+      color: var(--vivent-slate-950);
       font-size: 0.95rem;
       font-family: inherit;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
       margin-bottom: 1.25rem;
     }
-    input::placeholder { color: rgba(255,255,255,0.2); }
+    input::placeholder { color: #9CA3AF; }
     input:focus {
-      border-color: rgba(99,102,241,0.7);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+      border-color: var(--vivent-blue);
+      box-shadow: 0 0 0 3px rgba(35, 66, 184, 0.16);
     }
 
     button[type="submit"] {
       width: 100%;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      background: var(--vivent-blue);
       color: #fff;
       font-family: inherit;
       font-size: 0.95rem;
       font-weight: 700;
       padding: 0.875rem;
       border: none;
-      border-radius: 12px;
+      border-radius: var(--vivent-radius-md);
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
+      transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
       margin-top: 0.25rem;
     }
-    button[type="submit"]:hover { opacity: 0.9; transform: translateY(-1px); }
+    button[type="submit"]:hover { background: var(--vivent-blue-hover); transform: translateY(-1px); box-shadow: 0 8px 16px rgba(35, 66, 184, 0.22); }
     button[type="submit"]:active { transform: translateY(0); }
     button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     .error {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.25);
-      color: #fca5a5;
+      background: var(--vivent-danger-soft);
+      border: 1px solid #FECDCA;
+      color: var(--vivent-danger);
       font-size: 0.85rem;
       padding: 0.75rem 1rem;
-      border-radius: 10px;
+      border-radius: var(--vivent-radius-md);
       margin-top: 1rem;
       display: none;
     }
@@ -142,22 +152,22 @@
     }
     .check {
       width: 64px; height: 64px;
-      background: rgba(34,197,94,0.15);
+      background: var(--vivent-blue-soft);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 28px;
       margin: 0 auto 1rem;
-      border: 1px solid rgba(34,197,94,0.3);
+      border: 1px solid var(--vivent-blue-border);
     }
     .success-screen h2 {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--vivent-slate-950);
       margin-bottom: 0.4rem;
     }
     .success-screen p {
       font-size: 0.875rem;
-      color: rgba(255,255,255,0.45);
+      color: var(--vivent-slate-500);
     }
 
     .warning {
@@ -171,6 +181,11 @@
       line-height: 1.5;
     }
     .warning strong { color: #fde68a; }
+
+    @media (max-width: 480px) {
+      body { align-items: flex-start; padding: 1rem; }
+      .card { margin: 2rem 0; padding: 2rem 1.5rem; border-radius: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -180,8 +195,8 @@
   <!-- Login form -->
   <div id="login-section">
     <div class="badge">Restricted Access</div>
-    <h1>VIVENT<br/>Admin Portal</h1>
-    <p class="subtitle">This page is for authorized administrators only.<br/>Not linked from the public application.</p>
+    <h1><span class="brand">VIVENT</span><br/>Admin Portal</h1>
+    <!-- <p class="subtitle">This page is for authorized administrators only.<br/>Not linked from the public application.</p> -->
 
     <form id="admin-form" autocomplete="off">
       <label for="email">Admin Email</label>
@@ -189,7 +204,7 @@
         id="email"
         type="email"
         name="email"
-        placeholder="admin@example.com"
+        
         autocomplete="off"
         required
       />
@@ -199,7 +214,7 @@
         id="password"
         type="password"
         name="password"
-        placeholder="••••••••••••"
+        
         autocomplete="new-password"
         required
       />

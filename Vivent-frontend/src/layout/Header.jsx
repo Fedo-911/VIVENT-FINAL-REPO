@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaChevronDown, FaBell, FaUserCircle, FaUserGraduate, FaStore } from "react-icons/fa";
+import { FaChevronDown, FaBell, FaUserCircle, FaUserGraduate, FaStore, FaUserShield } from "react-icons/fa";
+import { notificationsApi } from "../utils/api";
+import viventLogo from "../assets/vivent-logo.png";
 
 const dashboardByRole = {
+  admin: {
+    label: "VIVENT Admin",
+    path: "/adminpanel",
+    icon: FaUserShield,
+    iconClass: "text-blue-200",
+  },
   student: {
     label: "Student Panel",
     path: "/studentpanel",
@@ -25,20 +33,114 @@ const readCurrentUser = () => {
   }
 };
 
+const relativeTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently";
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return "Just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+  if (seconds < 172800) return "Yesterday";
+  return `${Math.floor(seconds / 86400)} days ago`;
+};
+
 const Header = ({ isAuthenticated, currentRole, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
+  const [notificationsError, setNotificationsError] = useState("");
   const navigate = useNavigate();
   const currentUser = readCurrentUser();
   const activeRole = currentRole || currentUser.role || "";
   const dashboard = dashboardByRole[activeRole];
 
-  const notifications = [
-    "Event pages are connected to the dashboard.",
-    "Post management edits can now be applied from the list.",
-    "Report filters update from the selected client plan.",
-    "Completed events are shown in records and tables.",
-  ];
+  const loadNotifications = useCallback(async ({ showLoading = false } = {}) => {
+    if (!isAuthenticated) return;
+    if (showLoading) setNotificationsLoading(true);
+    try {
+      const [items, unread] = await Promise.all([notificationsApi.list(), notificationsApi.unreadCount()]);
+      setNotifications(items);
+      setHasMoreNotifications(items.length === 20);
+      setUnreadCount(unread.count || 0);
+      setNotificationsError("");
+    } catch (error) {
+      setNotificationsError(error.message || "Could not load notifications.");
+    } finally {
+      if (showLoading) setNotificationsLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return undefined;
+    }
+    loadNotifications();
+    const timer = window.setInterval(() => loadNotifications(), 30000);
+    return () => window.clearInterval(timer);
+  }, [isAuthenticated, loadNotifications]);
+
+  const toggleNotifications = () => {
+    const opening = openDropdown !== "notifications";
+    setOpenDropdown(opening ? "notifications" : null);
+    if (opening) loadNotifications({ showLoading: true });
+  };
+
+  const markRead = async (notification) => {
+    if (notification.is_read) return;
+    setNotifications((items) => items.map((item) => item.id === notification.id ? { ...item, is_read: true } : item));
+    setUnreadCount((count) => Math.max(0, count - 1));
+    try { await notificationsApi.markRead(notification.id); } catch { loadNotifications(); }
+  };
+
+  const openNotification = async (notification) => {
+    await markRead(notification);
+    setOpenDropdown(null);
+    if (notification.type === "contact_reply" && notification.reference_id) {
+      navigate(`/contact-history?inquiry=${encodeURIComponent(notification.reference_id)}`);
+    }
+  };
+
+  const deleteNotification = async (event, id) => {
+    event.stopPropagation();
+    setNotifications((items) => items.filter((item) => item.id !== id));
+    try { await notificationsApi.delete(id); loadNotifications(); } catch { loadNotifications(); }
+  };
+
+  const markAllRead = async () => {
+    setNotifications((items) => items.map((item) => ({ ...item, is_read: true })));
+    setUnreadCount(0);
+    try { await notificationsApi.markAllRead(); } catch { loadNotifications(); }
+  };
+
+  const clearAll = async () => {
+    if (!window.confirm("Clear all notifications? This cannot be undone.")) return;
+    try { await notificationsApi.clearAll(); setNotifications([]); setUnreadCount(0); } catch (error) { setNotificationsError(error.message || "Could not clear notifications."); }
+  };
+
+  const loadOlderNotifications = async () => {
+    if (loadingOlder || !hasMoreNotifications) return;
+    setLoadingOlder(true);
+    try {
+      const older = await notificationsApi.list({ limit: 20, offset: notifications.length });
+      setNotifications((items) => [...items, ...older.filter((item) => !items.some((existing) => existing.id === item.id))]);
+      setHasMoreNotifications(older.length === 20);
+    } catch (error) {
+      setNotificationsError(error.message || "Could not load older notifications.");
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
+
+  const handleNotificationScroll = (event) => {
+    const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
+    if (scrollTop + clientHeight >= scrollHeight - 16) loadOlderNotifications();
+  };
 
   const handleLogout = () => {
     onLogout();
@@ -53,10 +155,12 @@ const Header = ({ isAuthenticated, currentRole, onLogout }) => {
     <header className="sticky top-0 z-50 border-b border-blue-100 bg-white shadow-md">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center justify-between py-4">
-          <Link to="/">
-            <h2 className="text-2xl font-bold tracking-wide text-blue-800">
-              VIVENT
-            </h2>
+          <Link aria-label="Vivent home" className="flex items-center" to="/">
+            <img
+              alt="Vivent"
+              className="h-11 w-auto object-contain"
+              src={viventLogo}
+            />
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
@@ -118,44 +222,33 @@ const Header = ({ isAuthenticated, currentRole, onLogout }) => {
                 </>
               )}
 
-              <div className="relative">
+              {isAuthenticated && <div className="relative">
                 <button
                   className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-800 shadow-sm transition hover:bg-blue-50"
-                  onClick={() =>
-                    setOpenDropdown((value) =>
-                      value === "notifications" ? null : "notifications"
-                    )
-                  }
+                  onClick={toggleNotifications}
                   type="button"
                 >
                   <FaBell />
-                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+                  {unreadCount > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-500 px-1 text-xs font-bold leading-5 text-white" aria-label={`${unreadCount} unread notifications`}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
                 </button>
 
                 {openDropdown === "notifications" && (
                   <div className="absolute right-0 z-50 mt-4 w-80 overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-2xl">
                     <div className="bg-blue-900 px-5 py-4">
                       <h3 className="text-lg font-bold text-white">Notifications</h3>
-                      <p className="mt-1 text-sm text-blue-100">
-                        Recent actions and dashboard updates
-                      </p>
+                      <div className="mt-1 flex items-center justify-between gap-2 text-sm text-blue-100"><span>Recent activity</span>{unreadCount > 0 && <button className="text-xs font-semibold underline" onClick={markAllRead} type="button">Mark all read</button>}</div>
                     </div>
-                    <div className="max-h-72 space-y-3 overflow-auto p-4">
-                      {notifications.map((item, index) => (
-                        <div
-                          className="rounded-2xl bg-blue-50 px-4 py-3 text-sm font-medium text-blue-900"
-                          key={item}
-                        >
-                          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-800 text-xs font-bold text-white">
-                            {index + 1}
-                          </span>
-                          {item}
-                        </div>
-                      ))}
+                    <div className="max-h-72 space-y-3 overflow-auto p-4" onScroll={handleNotificationScroll}>
+                      {notificationsLoading && <p className="px-2 py-3 text-sm text-gray-500">Loading notifications…</p>}
+                      {!notificationsLoading && notificationsError && <p className="px-2 py-3 text-sm text-red-600">{notificationsError}</p>}
+                      {!notificationsLoading && !notificationsError && notifications.length === 0 && <p className="px-2 py-5 text-center text-sm text-gray-500">You’re all caught up! No new notifications.</p>}
+                      {notifications.map((item) => <button className={`relative w-full rounded-2xl px-4 py-3 pr-9 text-left text-sm text-blue-900 ${item.is_read ? "bg-white" : "bg-blue-50 font-medium"}`} key={item.id} onClick={() => openNotification(item)} type="button"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-800 text-xs font-bold text-white"><FaBell /></span><span className="font-semibold">{item.title}</span><span className="mt-1 block text-xs text-gray-600">{item.message}</span><span className="mt-1 block text-xs text-gray-400">{relativeTime(item.created_at)}</span>{!item.is_read && <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-500" />}<span aria-label="Delete notification" className="absolute bottom-3 right-3 text-xs text-gray-400 hover:text-red-600" onClick={(event) => deleteNotification(event, item.id)}>×</span></button>)}
+                      {loadingOlder && <p className="text-center text-xs text-gray-500">Loading older notifications…</p>}
+                      {notifications.length > 0 && <button className="w-full text-center text-xs font-semibold text-blue-800 hover:underline" onClick={clearAll} type="button">Clear all</button>}
                     </div>
                   </div>
                 )}
-              </div>
+              </div>}
 
               {isAuthenticated && (
                 <div className="relative">
@@ -186,12 +279,23 @@ const Header = ({ isAuthenticated, currentRole, onLogout }) => {
                       <div className="flex flex-col gap-4 p-4">
                         {dashboard && (
                           <Link
+                            aria-label={activeRole === "admin" ? "Go to Admin Dashboard" : `Go to ${dashboard.label}`}
                             className="flex h-14 w-full items-center gap-4 rounded-2xl bg-blue-800 px-5 text-white shadow-lg transition duration-300 hover:scale-105 hover:bg-blue-900"
                             onClick={closeAll}
                             to={dashboard.path}
                           >
                             <dashboard.icon className={`text-xl ${dashboard.iconClass}`} />
                             <span className="text-lg font-semibold">{dashboard.label}</span>
+                          </Link>
+                        )}
+
+                        {activeRole !== "admin" && (
+                          <Link
+                            className="flex h-12 w-full items-center rounded-2xl bg-blue-800 px-5 text-base font-semibold text-white shadow-lg transition hover:bg-blue-900"
+                            onClick={closeAll}
+                            to="/contact-history"
+                          >
+                            Contact History
                           </Link>
                         )}
 

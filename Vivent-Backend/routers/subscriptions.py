@@ -18,6 +18,7 @@ from schemas.common import MessageResponse
 from schemas.subscriptions import SubscriptionCreate, SubscriptionOut, PlanSummary
 from supabase_client import supabase
 from utils.helpers import get_row_or_404, utc_now_iso
+from utils.promotion_plans import PLAN_PRICES
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
@@ -39,7 +40,9 @@ def _fetch_plan(plan_id: str) -> dict:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Plan not found or is no longer active.",
         )
-    return response.data[0]
+    plan = response.data[0]
+    plan["price"] = PLAN_PRICES[plan["name"]]
+    return plan
 
 
 def _get_active_subscription(user_id: str) -> dict | None:
@@ -73,6 +76,28 @@ def _build_response(row: dict, plan: dict) -> SubscriptionOut:
         updated_at=row["updated_at"],
         plan=plan_summary,
     )
+
+
+def activate_subscription_for_user(user_id: str, plan_id: str) -> SubscriptionOut:
+    """Activate a plan after the payment provider confirms it."""
+    plan = _fetch_plan(plan_id)
+    existing = _get_active_subscription(user_id)
+    if existing and existing["plan_id"] == plan_id:
+        return _build_response(existing, plan)
+
+    now = utc_now_iso()
+    if existing:
+        response = supabase.table("user_subscriptions").update(
+            {"plan_id": plan_id, "updated_at": now}
+        ).eq("id", existing["id"]).execute()
+    else:
+        response = supabase.table("user_subscriptions").insert({
+            "user_id": user_id, "plan_id": plan_id, "status": "active",
+            "started_at": now, "updated_at": now,
+        }).execute()
+    if not response.data:
+        raise HTTPException(status_code=500, detail="Failed to save subscription. Please try again.")
+    return _build_response(response.data[0], plan)
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -111,7 +136,9 @@ def get_my_subscription(
             plan=None,
         )
 
-    return _build_response(row, plan_response.data[0])
+    plan = plan_response.data[0]
+    plan["price"] = PLAN_PRICES[plan["name"]]
+    return _build_response(row, plan)
 
 
 @router.post("", response_model=SubscriptionOut, status_code=status.HTTP_200_OK)
@@ -119,7 +146,7 @@ def subscribe_to_plan(
     payload: SubscriptionCreate,
     current_user: dict = Depends(get_current_user),
 ) -> SubscriptionOut:
-    """Subscribe the current user to a plan.
+    """Legacy endpoint retained for compatibility; checkout confirms activation.
 
     - If the user has **no** active subscription → creates a new row.
     - If the user **already** has an active subscription → upgrades / downgrades
@@ -127,6 +154,10 @@ def subscribe_to_plan(
 
     Called when the frontend "Select Plan" button is clicked.
     """
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="Complete checkout before activating a promotion plan.",
+    )
     user_id: str = current_user["id"]
     now = utc_now_iso()
 

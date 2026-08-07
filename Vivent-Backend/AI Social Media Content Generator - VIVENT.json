@@ -1,0 +1,2574 @@
+{
+  "name": "VIVENT AI Social Media Content Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-research-model",
+              "name": "config.research_model",
+              "value": "nvidia/nemotron-3-ultra-550b-a55b",
+              "type": "string"
+            },
+            {
+              "id": "cfg-content-model",
+              "name": "config.content_model",
+              "value": "mistralai/mistral-medium-3.5-128b",
+              "type": "string"
+            },
+            {
+              "id": "cfg-qc-model",
+              "name": "config.qc_model",
+              "value": "mistralai/mistral-medium-3.5-128b",
+              "type": "string"
+            },
+            {
+              "id": "cfg-image-model",
+              "name": "config.image_model",
+              "value": "black-forest-labs/flux.2-klein-4b",
+              "type": "string"
+            },
+            {
+              "id": "cfg-image-size",
+              "name": "config.image_size",
+              "value": "1024x1024",
+              "type": "string"
+            },
+            {
+              "id": "cfg-image-quality",
+              "name": "config.image_quality",
+              "value": "hd",
+              "type": "string"
+            },
+            {
+              "id": "cfg-hashtags-enabled",
+              "name": "config.hashtags_enabled",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "cfg-max-retries",
+              "name": "config.max_retries",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "cfg-topic-source",
+              "name": "config.topic_source",
+              "value": "manual",
+              "type": "string"
+            },
+            {
+              "id": "cfg-manual-topic",
+              "name": "config.manual_topic",
+              "value": "Artificial Intelligence",
+              "type": "string"
+            },
+            {
+              "id": "cfg-language",
+              "name": "config.language",
+              "value": "English",
+              "type": "string"
+            },
+            {
+              "id": "cfg-brand-voice",
+              "name": "config.brand_voice",
+              "value": "knowledgeable, direct, slightly informal, never corporate",
+              "type": "string"
+            },
+            {
+              "id": "cfg-target-audience",
+              "name": "config.target_audience",
+              "value": "tech-savvy professionals and enthusiasts aged 25-45",
+              "type": "string"
+            },
+            {
+              "id": "cfg-nvidia-api-base",
+              "name": "config.nvidia_api_base",
+              "value": "https://integrate.api.nvidia.com/v1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "e3b0d811-10ce-4833-8a40-f3947b347e90",
+      "name": "Set Global Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5344,
+        656
+      ],
+      "notes": "CONFIGURATION HUB: All settings live here.\n\nMODELS:\n- config.research_model: deepseek-ai/deepseek-v4-pro (best 1M context + reasoning)\n- config.content_model: mistralai/mistral-medium-3.5-128b (best instruction following)\n- config.qc_model: mistralai/mistral-medium-3.5-128b (best structured validation)\n\nOTHER MODELS AVAILABLE ON NVIDIA NIM:\n- nvidia/nemotron-3-ultra-550b-a55b (fastest, best for agentic orchestration)\n- deepseek-ai/deepseek-v4-flash (cheapest: $0.14/$0.28 per 1M tokens)\n- minimaxai/minimax-m3 (best for video/image-aware content)\n\nCREDENTIAL SETUP:\nCreate a Header Auth credential in n8n named 'NVIDIA NIM API':\n  Header Name:  Authorization\n  Header Value: Bearer YOUR_NVIDIA_API_KEY\nGet your key at: https://build.nvidia.com"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "merge-topic",
+              "name": "topic",
+              "value": "={{ $('VIVENT Campaign Context').item.json.company_name + ': ' + $('VIVENT Campaign Context').item.json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-source",
+              "name": "topic_source_used",
+              "value": "vivent_webhook",
+              "type": "string"
+            },
+            {
+              "id": "merge-hashtags",
+              "name": "hashtags_enabled",
+              "value": "={{ $('Set Global Config').item.json.config.hashtags_enabled }}",
+              "type": "boolean"
+            },
+            {
+              "id": "merge-research-model",
+              "name": "research_model",
+              "value": "={{ $('Set Global Config').item.json.config.research_model }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-content-model",
+              "name": "content_model",
+              "value": "={{ $('Set Global Config').item.json.config.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-qc-model",
+              "name": "qc_model",
+              "value": "={{ $('Set Global Config').item.json.config.qc_model }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-image-model",
+              "name": "image_model",
+              "value": "={{ $('Set Global Config').item.json.config.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-brand-voice",
+              "name": "brand_voice",
+              "value": "={{ $('VIVENT Campaign Context').item.json.brand_voice }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-audience",
+              "name": "target_audience",
+              "value": "={{ $('VIVENT Campaign Context').item.json.target_audience }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-language",
+              "name": "language",
+              "value": "={{ $('Set Global Config').item.json.config.language }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-nvidia-base",
+              "name": "nvidia_api_base",
+              "value": "={{ $('Set Global Config').item.json.config.nvidia_api_base }}",
+              "type": "string"
+            },
+            {
+              "id": "merge-retry-count",
+              "name": "retry_count",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "merge-timestamp",
+              "name": "workflow_started_at",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c92eacbd-a757-44db-8842-0d4b24ca275f",
+      "name": "Merge Topic + Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4672,
+        656
+      ],
+      "notes": "MERGE: Consolidates topic + all config into a single data object. All downstream nodes reference this. This is the single source of truth for the workflow execution."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.nvidia_api_base }}/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $json.research_model,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are a senior research analyst. Gather structured research about topics for social media content creation. Return ONLY valid JSON with no extra text, no explanation, no markdown.\"\n    },\n    {\n      role: \"user\",\n      content: \"Research this topic: \" + $json.topic + \". Target audience: \" + $json.target_audience + \". Language: \" + $json.language + \". Return JSON with these exact fields: topic, latest_trends (array of 3-5 items), key_facts (array of 4-6 items), common_questions (array of 3-4 items), misconceptions (array of 2-3 items), practical_advice (array of 3-5 items), audience_interests (array), content_angles (array of 4 items), hook_ideas (array of 3-4 items).\"\n    }\n  ],\n  temperature: 0.7,\n  max_tokens: 1500\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "2c016a72-e270-4c54-b99a-8a33d62ad882",
+      "name": "Research Agent (HTTP - DeepSeek V4 Pro)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4448,
+        656
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "notes": "RESEARCH STAGE: Calls NVIDIA NIM API using DeepSeek V4 Pro (1M token context, deep reasoning). Temperature 0.7 for balanced research.\n\nCREDENTIAL: Select your 'NVIDIA NIM API' Header Auth credential here.\n\nTO SWITCH MODELS: Change config.research_model in 'Set Global Config' node.\n\nRESPONSE PATH: $json.choices[0].message.content"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "parse-research",
+              "name": "research",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; return typeof c === 'string' ? JSON.parse(c) : (c || {}); } catch(e) { return {}; } })() }}",
+              "type": "object"
+            },
+            {
+              "id": "carry-topic",
+              "name": "topic",
+              "value": "={{ $('Merge Topic + Config').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-hashtags",
+              "name": "hashtags_enabled",
+              "value": "={{ $('Merge Topic + Config').item.json.hashtags_enabled }}",
+              "type": "boolean"
+            },
+            {
+              "id": "carry-research-model",
+              "name": "research_model",
+              "value": "={{ $('Merge Topic + Config').item.json.research_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-content-model",
+              "name": "content_model",
+              "value": "={{ $('Merge Topic + Config').item.json.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-qc-model",
+              "name": "qc_model",
+              "value": "={{ $('Merge Topic + Config').item.json.qc_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-image-model",
+              "name": "image_model",
+              "value": "={{ $('Merge Topic + Config').item.json.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-brand-voice",
+              "name": "brand_voice",
+              "value": "={{ $('Merge Topic + Config').item.json.brand_voice }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-audience",
+              "name": "target_audience",
+              "value": "={{ $('Merge Topic + Config').item.json.target_audience }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-language",
+              "name": "language",
+              "value": "={{ $('Merge Topic + Config').item.json.language }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-nvidia-base",
+              "name": "nvidia_api_base",
+              "value": "={{ $('Merge Topic + Config').item.json.nvidia_api_base }}",
+              "type": "string"
+            },
+            {
+              "id": "carry-retry",
+              "name": "retry_count",
+              "value": "={{ $('Merge Topic + Config').item.json.retry_count }}",
+              "type": "number"
+            },
+            {
+              "id": "carry-timestamp",
+              "name": "workflow_started_at",
+              "value": "={{ $('Merge Topic + Config').item.json.workflow_started_at }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "920e568c-e016-4d84-a98a-a32007b7a3ff",
+      "name": "Parse Research Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4224,
+        656
+      ],
+      "notes": "PARSE: Extracts research JSON from NVIDIA NIM response at choices[0].message.content. Carries all config values forward. Safe try/catch prevents failures on malformed responses."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.nvidia_api_base }}/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $json.content_model,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an experienced social media content creator. Write like a sharp informed human, never like AI. Rules: no emojis, no hashtags unless told to, no markdown, no quotes around output, no forbidden phrases (As an AI, In todays world, Game-changing, Revolutionary, Dive into, Unlock, Lets explore, leverage, synergy, paradigm), write conversationally, vary sentence lengths, be specific, include a subtle natural CTA. Return ONLY valid JSON.\"\n    },\n    {\n      role: \"user\",\n      content: \"Topic: \" + $json.topic + \". Brand voice: \" + $json.brand_voice + \". Target audience: \" + $json.target_audience + \". Language: \" + $json.language + \". Hashtags enabled: \" + $json.hashtags_enabled + \". Research context: \" + JSON.stringify($json.research) + \". Generate four unique platform posts. Instagram: 80-150 words, storytelling style. Facebook: 120-220 words, community-focused. LinkedIn: 150-280 words, professional insight. TikTok: 40-80 words, punchy caption. Also generate an image_prompt of 50 words max. Describe: subject, setting, lighting style, mood, color palette, visual style. Be specific but brief. Return JSON: {\\\"instagram_post\\\": \\\"\\\", \\\"facebook_post\\\": \\\"\\\", \\\"linkedin_post\\\": \\\"\\\", \\\"tiktok_post\\\": \\\"\\\", \\\"image_prompt\\\": \\\"\\\"}\"\n    }\n  ],\n  temperature: 0.85,\n  max_tokens: 2500\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "eea95893-484c-40ee-afee-45e55a50a5d0",
+      "name": "Content Generator (HTTP - Mistral Medium 3.5)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4000,
+        656
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "CONTENT GENERATION: Calls Mistral Medium 3.5 via NVIDIA NIM. Temperature 0.85 for creativity. reasoning_effort: none for fast natural creative writing (Mistral-specific parameter that prevents robotic chain-of-thought in output).\n\nTO SWITCH MODELS: Change config.content_model in 'Set Global Config'.\nIf using a non-Mistral model, remove the 'reasoning_effort' body parameter.\n\nRESPONSE PATH: $json.choices[0].message.content"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "parse-content-instagram",
+              "name": "instagram_post",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; const p = typeof c === 'string' ? JSON.parse(c) : c; return p?.instagram_post || ''; } catch(e) { return ''; } })() }}",
+              "type": "string"
+            },
+            {
+              "id": "parse-content-facebook",
+              "name": "facebook_post",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; const p = typeof c === 'string' ? JSON.parse(c) : c; return p?.facebook_post || ''; } catch(e) { return ''; } })() }}",
+              "type": "string"
+            },
+            {
+              "id": "parse-content-linkedin",
+              "name": "linkedin_post",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; const p = typeof c === 'string' ? JSON.parse(c) : c; return p?.linkedin_post || ''; } catch(e) { return ''; } })() }}",
+              "type": "string"
+            },
+            {
+              "id": "parse-content-tiktok",
+              "name": "tiktok_post",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; const p = typeof c === 'string' ? JSON.parse(c) : c; return p?.tiktok_post || ''; } catch(e) { return ''; } })() }}",
+              "type": "string"
+            },
+            {
+              "id": "parse-image-prompt",
+              "name": "image_prompt",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; const p = typeof c === 'string' ? JSON.parse(c) : c; return p?.image_prompt || ''; } catch(e) { return ''; } })() }}",
+              "type": "string"
+            },
+            {
+              "id": "carry2-topic",
+              "name": "topic",
+              "value": "={{ $('Parse Research Output').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "carry2-hashtags",
+              "name": "hashtags_enabled",
+              "value": "={{ $('Parse Research Output').item.json.hashtags_enabled }}",
+              "type": "boolean"
+            },
+            {
+              "id": "carry2-content-model",
+              "name": "content_model",
+              "value": "={{ $('Parse Research Output').item.json.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry2-qc-model",
+              "name": "qc_model",
+              "value": "={{ $('Parse Research Output').item.json.qc_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry2-image-model",
+              "name": "image_model",
+              "value": "={{ $('Parse Research Output').item.json.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "carry2-nvidia-base",
+              "name": "nvidia_api_base",
+              "value": "={{ $('Parse Research Output').item.json.nvidia_api_base }}",
+              "type": "string"
+            },
+            {
+              "id": "carry2-retry",
+              "name": "retry_count",
+              "value": "={{ $('Parse Research Output').item.json.retry_count }}",
+              "type": "number"
+            },
+            {
+              "id": "carry2-timestamp",
+              "name": "workflow_started_at",
+              "value": "={{ $('Parse Research Output').item.json.workflow_started_at }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7d27c3cf-be05-4e11-b750-5287fc995efe",
+      "name": "Parse Content Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3776,
+        576
+      ],
+      "notes": "PARSE: Safely extracts all 4 platform posts and image prompt from NVIDIA NIM response at choices[0].message.content. Uses try/catch for safe JSON parsing."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.nvidia_api_base }}/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $json.qc_model,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are a quality assurance editor for social media content. Check the provided posts for these violations: emojis present, hashtags present when hashtags_enabled is false, forbidden AI phrases such as As an AI or In todays world or Game-changing or Dive into or Unlock, excessive punctuation like !!! or ???, markdown formatting, robotic unnatural tone, identical posts across platforms, off-topic content. Return ONLY valid JSON with no extra text.\"\n    },\n    {\n      role: \"user\",\n      content: \"Topic: \" + $json.topic + \". Hashtags enabled: \" + $json.hashtags_enabled + \". Retry count: \" + $json.retry_count + \".\\n\\nInstagram Post:\\n\" + $json.instagram_post + \"\\n\\nFacebook Post:\\n\" + $json.facebook_post + \"\\n\\nLinkedIn Post:\\n\" + $json.linkedin_post + \"\\n\\nTikTok Post:\\n\" + $json.tiktok_post + \"\\n\\nReturn this JSON: {\\\"validation_passed\\\": true, \\\"recommendation\\\": \\\"APPROVE\\\", \\\"failed_checks\\\": [], \\\"retry_count\\\": \" + $json.retry_count + \"}\"\n    }\n  ],\n  temperature: 0.1,\n  max_tokens: 800\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "a4292d54-ba47-41d6-9986-2b7b7d0d2d38",
+      "name": "Quality Check (HTTP - Mistral Medium 3.5)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3552,
+        576
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "notes": "QUALITY GATE: Temperature 0.1 for deterministic validation. reasoning_effort: high forces Mistral to deeply evaluate all rules before deciding (opposite of content generation). Returns APPROVE or REGENERATE.\n\nRESPONSE PATH: $json.choices[0].message.content"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "qc-validation-result",
+              "name": "validation_result",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; return typeof c === 'string' ? JSON.parse(c) : (c || {validation_passed: true, recommendation: 'APPROVE'}); } catch(e) { return {validation_passed: true, recommendation: 'APPROVE'}; } })() }}",
+              "type": "object"
+            },
+            {
+              "id": "qc-approved",
+              "name": "quality_approved",
+              "value": "={{ (() => { try { const c = $json.choices?.[0]?.message?.content; const r = typeof c === 'string' ? JSON.parse(c) : c; return r?.recommendation === 'APPROVE'; } catch(e) { return true; } })() }}",
+              "type": "boolean"
+            },
+            {
+              "id": "qc-carry-instagram",
+              "name": "instagram_post",
+              "value": "={{ $('Parse Content Output').item.json.instagram_post }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-facebook",
+              "name": "facebook_post",
+              "value": "={{ $('Parse Content Output').item.json.facebook_post }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-linkedin",
+              "name": "linkedin_post",
+              "value": "={{ $('Parse Content Output').item.json.linkedin_post }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-tiktok",
+              "name": "tiktok_post",
+              "value": "={{ $('Parse Content Output').item.json.tiktok_post }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-image-prompt",
+              "name": "image_prompt",
+              "value": "={{ $('Parse Content Output').item.json.image_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-topic",
+              "name": "topic",
+              "value": "={{ $('Parse Content Output').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-content-model",
+              "name": "content_model",
+              "value": "={{ $('Parse Content Output').item.json.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-qc-model",
+              "name": "qc_model",
+              "value": "={{ $('Parse Content Output').item.json.qc_model }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-image-model",
+              "name": "image_model",
+              "value": "={{ $('Parse Content Output').item.json.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-nvidia-base",
+              "name": "nvidia_api_base",
+              "value": "={{ $('Parse Content Output').item.json.nvidia_api_base }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-retry",
+              "name": "retry_count",
+              "value": "={{ $('Parse Content Output').item.json.retry_count }}",
+              "type": "number"
+            },
+            {
+              "id": "qc-carry-timestamp",
+              "name": "workflow_started_at",
+              "value": "={{ $('Parse Content Output').item.json.workflow_started_at }}",
+              "type": "string"
+            },
+            {
+              "id": "qc-carry-hashtags",
+              "name": "hashtags_enabled",
+              "value": "={{ $('Parse Content Output').item.json.hashtags_enabled }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "68201bba-c984-4de8-bd82-ce011ef05d37",
+      "name": "Parse QC Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3328,
+        576
+      ],
+      "notes": "PARSE QC: Extracts quality check result from choices[0].message.content. Sets quality_approved boolean. Falls back to true on parse error to prevent infinite loops."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-quality-pass",
+              "leftValue": "={{ $json.quality_approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b57824f4-fd03-4f39-b942-2dfce66e699b",
+      "name": "Quality Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3104,
+        576
+      ],
+      "notes": "QUALITY GATE ROUTER:\n- Output 0 (true): APPROVED \u2192 proceeds to Image Generation\n- Output 1 (false): FAILED \u2192 routes to Retry Check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-max-retries",
+              "leftValue": "={{ $json.retry_count }}",
+              "rightValue": "={{ $('Set Global Config').item.json.config.max_retries }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e494a853-d10f-4d94-9366-9c5a9a9cc0bb",
+      "name": "Retry Check (Max Retries?)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -2880,
+        672
+      ],
+      "notes": "RETRY GUARD: Checks if retry_count < max_retries (default 3). If yes \u2192 increments and loops back to Content Generator. If no \u2192 routes to Error Handler."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "increment-retry",
+              "name": "retry_count",
+              "value": "={{ $json.retry_count + 1 }}",
+              "type": "number"
+            },
+            {
+              "id": "retry-carry-topic",
+              "name": "topic",
+              "value": "={{ $json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-hashtags",
+              "name": "hashtags_enabled",
+              "value": "={{ $json.hashtags_enabled }}",
+              "type": "boolean"
+            },
+            {
+              "id": "retry-carry-content-model",
+              "name": "content_model",
+              "value": "={{ $json.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-qc-model",
+              "name": "qc_model",
+              "value": "={{ $json.qc_model }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-image-model",
+              "name": "image_model",
+              "value": "={{ $json.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-nvidia-base",
+              "name": "nvidia_api_base",
+              "value": "={{ $json.nvidia_api_base }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-brand-voice",
+              "name": "brand_voice",
+              "value": "={{ $('Parse Research Output').item.json.brand_voice }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-audience",
+              "name": "target_audience",
+              "value": "={{ $('Parse Research Output').item.json.target_audience }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-language",
+              "name": "language",
+              "value": "={{ $('Parse Research Output').item.json.language }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-carry-research",
+              "name": "research",
+              "value": "={{ $('Parse Research Output').item.json.research }}",
+              "type": "object"
+            },
+            {
+              "id": "retry-carry-timestamp",
+              "name": "workflow_started_at",
+              "value": "={{ $json.workflow_started_at }}",
+              "type": "string"
+            },
+            {
+              "id": "retry-failed-checks",
+              "name": "previous_failed_checks",
+              "value": "={{ $json.validation_result?.failed_checks || [] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2bed888a-24e0-4860-bfb7-4c2adde84ca8",
+      "name": "Increment Retry Counter",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2656,
+        672
+      ],
+      "notes": "RETRY PREP: Increments retry_count and prepares data for another content generation attempt.\n\nMANUAL CONNECTION REQUIRED: Connect this node's output to 'Content Generator (HTTP - Mistral Medium 3.5)' input to create the retry loop."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-topic",
+              "name": "error_topic",
+              "value": "={{ $json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "error-message",
+              "name": "error_message",
+              "value": "={{ 'Content quality validation failed after ' + $json.retry_count + ' retries. Maximum retries reached.' }}",
+              "type": "string"
+            },
+            {
+              "id": "error-timestamp",
+              "name": "error_at",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "error-failed-checks",
+              "name": "failed_checks",
+              "value": "={{ $json.validation_result?.failed_checks || [] }}",
+              "type": "array"
+            },
+            {
+              "id": "error-retry-count",
+              "name": "retry_count",
+              "value": "={{ $json.retry_count }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8a307ff6-7662-4301-8965-5e1c511c400b",
+      "name": "Error: Max Retries Exceeded",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2656,
+        864
+      ],
+      "notes": "ERROR HANDLER: Triggered when max retries reached without passing QC. Connect to Slack / Email node for alerts."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "extract-image-url",
+              "name": "image_url",
+              "value": "={{ $json.artifacts?.[0]?.base64 \n   || $json.data?.[0]?.url \n   || $json.data?.[0]?.b64_json \n   || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-instagram",
+              "name": "instagram_post",
+              "value": "={{ $('Parse QC Result').item.json.instagram_post }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-facebook",
+              "name": "facebook_post",
+              "value": "={{ $('Parse QC Result').item.json.facebook_post }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-linkedin",
+              "name": "linkedin_post",
+              "value": "={{ $('Parse QC Result').item.json.linkedin_post }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-tiktok",
+              "name": "tiktok_post",
+              "value": "={{ $('Parse QC Result').item.json.tiktok_post }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-image-prompt",
+              "name": "image_prompt",
+              "value": "={{ $('Parse QC Result').item.json.image_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-topic",
+              "name": "topic",
+              "value": "={{ $('Parse QC Result').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-content-model",
+              "name": "content_model",
+              "value": "={{ $('Parse QC Result').item.json.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-image-model",
+              "name": "image_model",
+              "value": "={{ $('Parse QC Result').item.json.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "final-carry-timestamp",
+              "name": "workflow_started_at",
+              "value": "={{ $('Parse QC Result').item.json.workflow_started_at }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9719b448-8685-47d7-b941-1baad7ae2950",
+      "name": "Parse Image URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2656,
+        416
+      ],
+      "notes": "PARSE IMAGE: Extracts image URL from DALL-E response. Handles both URL and base64 formats."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "output-topic",
+              "name": "topic",
+              "value": "={{ $('Parse Content Output').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "output-instagram",
+              "name": "instagram_post",
+              "value": "={{ $('Parse Content Output').item.json.instagram_post }}",
+              "type": "string"
+            },
+            {
+              "id": "output-facebook",
+              "name": "facebook_post",
+              "value": "={{ $('Parse Content Output').item.json.facebook_post }}",
+              "type": "string"
+            },
+            {
+              "id": "output-linkedin",
+              "name": "linkedin_post",
+              "value": "={{ $('Parse Content Output').item.json.linkedin_post }}",
+              "type": "string"
+            },
+            {
+              "id": "output-tiktok",
+              "name": "tiktok_post",
+              "value": "={{ $('Parse Content Output').item.json.tiktok_post }}",
+              "type": "string"
+            },
+            {
+              "id": "output-image-prompt",
+              "name": "image_prompt",
+              "value": "={{ $('Parse Content Output').item.json.image_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "output-image-url",
+              "name": "image_url",
+              "value": "={{ $('Create Public URL').item.json.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "output-generated-at",
+              "name": "generated_at",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "output-model-used",
+              "name": "content_model",
+              "value": "={{ $('Parse QC Result').item.json.content_model }}",
+              "type": "string"
+            },
+            {
+              "id": "output-image-model",
+              "name": "image_model",
+              "value": "={{ $('Parse QC Result').item.json.image_model }}",
+              "type": "string"
+            },
+            {
+              "id": "output-workflow-start",
+              "name": "workflow_started_at",
+              "value": "={{ $('Parse Content Output').item.json.workflow_started_at }}",
+              "type": "string"
+            },
+            {
+              "id": "output-duration-ms",
+              "name": "duration_seconds",
+              "value": "={{\n$('Parse Content Output').item.json.workflow_started_at\n? Math.max(\n    0,\n    Math.round(\n      (Date.now() -\n       new Date($('Parse Content Output').item.json.workflow_started_at).getTime()) / 1000\n    )\n  )\n: 0\n}}",
+              "type": "number"
+            },
+            {
+              "id": "output-status",
+              "name": "status",
+              "value": "success",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d7a31a81-1ed5-454d-9032-17ce1cc16f39",
+      "name": "Build Final Output (JSON)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1232,
+        400
+      ],
+      "notes": "FINAL OUTPUT: Assembles the complete structured JSON output per spec. Contains all 4 posts, image URL, topic, timestamps, model used, and execution duration."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ig-ready-post",
+              "name": "platform",
+              "value": "instagram",
+              "type": "string"
+            },
+            {
+              "id": "ig-ready-content",
+              "name": "post_content",
+              "value": "={{ $json.instagram_post }}",
+              "type": "string"
+            },
+            {
+              "id": "ig-ready-image",
+              "name": "image_url",
+              "value": "={{ $json.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "ig-ready-topic",
+              "name": "topic",
+              "value": "={{ $json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "ig-ready-at",
+              "name": "generated_at",
+              "value": "={{ $json.generated_at }}",
+              "type": "string"
+            },
+            {
+              "id": "ig-ready-status",
+              "name": "publish_ready",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "91605c82-8c9e-4370-9ad2-555443e52c89",
+      "name": "Instagram Output (Ready to Publish)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "notes": "INSTAGRAM PUBLISHER PREP: Connect Instagram API node, Buffer, or Hootsuite webhook after this node."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fb-ready-platform",
+              "name": "platform",
+              "value": "facebook",
+              "type": "string"
+            },
+            {
+              "id": "fb-ready-content",
+              "name": "post_content",
+              "value": "={{ $json.facebook_post }}",
+              "type": "string"
+            },
+            {
+              "id": "fb-ready-image",
+              "name": "image_url",
+              "value": "={{ $json.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "fb-ready-topic",
+              "name": "topic",
+              "value": "={{ $json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "fb-ready-at",
+              "name": "generated_at",
+              "value": "={{ $json.generated_at }}",
+              "type": "string"
+            },
+            {
+              "id": "fb-ready-status",
+              "name": "publish_ready",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7b5f97b6-f8d3-489c-b7a4-1af95129f8d7",
+      "name": "Facebook Output (Ready to Publish)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        208
+      ],
+      "notes": "FACEBOOK PUBLISHER PREP: Connect Facebook Graph API node or social scheduling tool after this node."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "li-ready-platform",
+              "name": "platform",
+              "value": "linkedin",
+              "type": "string"
+            },
+            {
+              "id": "li-ready-content",
+              "name": "post_content",
+              "value": "={{ $json.linkedin_post }}",
+              "type": "string"
+            },
+            {
+              "id": "li-ready-image",
+              "name": "image_url",
+              "value": "={{ $json.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "li-ready-topic",
+              "name": "topic",
+              "value": "={{ $json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "li-ready-at",
+              "name": "generated_at",
+              "value": "={{ $json.generated_at }}",
+              "type": "string"
+            },
+            {
+              "id": "li-ready-status",
+              "name": "publish_ready",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "31686f82-b540-44a3-8fb4-222118719aed",
+      "name": "LinkedIn Output (Ready to Publish)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        624
+      ],
+      "notes": "LINKEDIN PUBLISHER PREP: Connect LinkedIn API node or social scheduling tool after this node."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tt-ready-platform",
+              "name": "platform",
+              "value": "tiktok",
+              "type": "string"
+            },
+            {
+              "id": "tt-ready-content",
+              "name": "post_content",
+              "value": "={{ $json.tiktok_post }}",
+              "type": "string"
+            },
+            {
+              "id": "tt-ready-image",
+              "name": "image_url",
+              "value": "={{ $json.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "tt-ready-topic",
+              "name": "topic",
+              "value": "={{ $json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "tt-ready-at",
+              "name": "generated_at",
+              "value": "={{ $json.generated_at }}",
+              "type": "string"
+            },
+            {
+              "id": "tt-ready-status",
+              "name": "publish_ready",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "19ce1d94-31d4-416b-843a-de34733044ab",
+      "name": "TikTok Output (Ready to Publish)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        864
+      ],
+      "notes": "TIKTOK PUBLISHER PREP: Connect TikTok API node or social management tool after this node."
+    },
+    {
+      "parameters": {
+        "content": "## AI Social Media Content Generator\n### NVIDIA NIM Edition\n\nAll LLM nodes now use HTTP Request\nnodes calling the NVIDIA NIM API.\n\nAPI Base: https://integrate.api.nvidia.com/v1\nAll endpoints are OpenAI-compatible.\n\n**Model Stack:**\nResearch \u2192 DeepSeek V4 Pro\nContent  \u2192 Mistral Medium 3.5\nQuality  \u2192 Mistral Medium 3.5\nImage    \u2192 DALL-E 3 (OpenAI)\n\n**Credential needed:**\nHeader Auth named 'NVIDIA NIM API'\n  Name:  Authorization\n  Value: Bearer YOUR_KEY",
+        "height": 320,
+        "width": 400,
+        "color": 7
+      },
+      "id": "78ae5bc3-e224-4829-806a-a42c935bad10",
+      "name": "Sticky Note - Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -5920,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## NVIDIA NIM CREDENTIAL SETUP\n\n1. Go to Settings > Credentials\n2. Click Add Credential\n3. Choose: Header Auth\n4. Name it exactly: NVIDIA NIM API\n5. Header Name:  Authorization\n6. Header Value: Bearer YOUR_NVIDIA_KEY\n7. Save\n\nGet your API key free at:\nhttps://build.nvidia.com\n\nFree tier: ~40 req/min\nNo per-token charge for prototyping\n\nAfter creating, open each HTTP Request\nnode and select 'NVIDIA NIM API' from\nthe credential dropdown.",
+        "height": 300,
+        "width": 380,
+        "color": 3
+      },
+      "id": "72161da7-2be5-44ed-b44a-eb6f5397c6f0",
+      "name": "Sticky Note - NVIDIA NIM Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -5488,
+        2576
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## MODEL CONFIGURATION\nEdit 'Set Global Config' to change:\n\nconfig.research_model\n  deepseek-ai/deepseek-v4-pro (default)\n  nvidia/nemotron-3-ultra-550b-a55b\n\nconfig.content_model\n  mistralai/mistral-medium-3.5-128b (default)\n  deepseek-ai/deepseek-v4-pro\n\nconfig.qc_model\n  mistralai/mistral-medium-3.5-128b (default)\n  deepseek-ai/deepseek-v4-flash (cheaper)\n\nBUDGET OPTION: Set all three to\n  deepseek-ai/deepseek-v4-flash\n  Cost: ~$0.001 per full run",
+        "height": 300,
+        "width": 380,
+        "color": 5
+      },
+      "id": "281d2da5-b6a4-431e-a153-cf8c342f2e91",
+      "name": "Sticky Note - Config",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4672,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## RETRY LOOP\nManual connection required:\n\n'Increment Retry Counter' output\n  ---> 'Content Generator\n        (HTTP - Mistral Medium 3.5)' input\n\nThis creates the auto-regeneration\ncycle when quality check fails.\nMax retries set in Set Global Config\n(default: 3).",
+        "height": 200,
+        "width": 340,
+        "color": 4
+      },
+      "id": "8a0a68c9-50a9-44a3-acb6-a82d9505c52c",
+      "name": "Sticky Note - Retry Loop",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3824,
+        2592
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## PUBLISHING\nEach platform output is ready:\n\nInstagram Output --> Instagram API\nFacebook Output  --> Facebook Graph\nLinkedIn Output  --> LinkedIn API\nTikTok Output    --> TikTok API\n\nOr connect all to Buffer / Hootsuite\n/ Agorapulse / Later webhook.",
+        "height": 200,
+        "width": 340,
+        "color": 6
+      },
+      "id": "fc130f19-a764-49fb-9beb-6c03488edafe",
+      "name": "Sticky Note - Publishing",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3392,
+        2592
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## EXTERNAL TOPIC SOURCES\nTo use Sheets/Airtable/Notion/Webhook:\n\n1. Add the respective n8n node\n2. Connect it BEFORE 'External Topic\n   Input' node\n3. Set config.topic_source to\n   anything other than 'manual'\n4. Ensure your data has a 'topic'\n   or 'Topic' field",
+        "height": 188,
+        "width": 312,
+        "color": 6
+      },
+      "id": "0fbb5ee3-9202-487a-8e5b-a2def4e081ce",
+      "name": "Sticky Note - External Sources",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -5072,
+        2624
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## reasoning_effort PARAMETER\n\nThis is a Mistral-specific parameter:\n\nContent Generator: reasoning_effort = none\n  Prevents robotic chain-of-thought.\n  Makes output more natural and fluid.\n\nQuality Check: reasoning_effort = high\n  Forces deep rule evaluation before\n  deciding to APPROVE or REGENERATE.\n\nIf you switch to DeepSeek or Nemotron,\nremove the reasoning_effort body\nparameter from those nodes (it will\nbe ignored but cleaner to remove).",
+        "height": 260,
+        "width": 380,
+        "color": 2
+      },
+      "id": "e4a7239a-597f-4559-a7fc-cef3f1d9a219",
+      "name": "Sticky Note - Reasoning Effort",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4240,
+        2576
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "image_url",
+        "options": {
+          "fileName": "social_image.jpg",
+          "mimeType": "image/jpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2432,
+        416
+      ],
+      "id": "7b93a351-880c-4db3-af4c-88af0a2a8518",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5709cb8c-d94d-4764-a9ab-33d63eadae64",
+              "name": "image_filename",
+              "value": "={{ \"social_\" + $now.format(\"yyyyMMdd_HHmmss\") + \"_\" + Math.floor(Math.random() * 100000) + \".jpg\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2208,
+        416
+      ],
+      "id": "bf3fc560-4eae-4a65-9a88-4d0fc0a4381f",
+      "name": "Generate Filename"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{\n\"https://vpwgdgpntdetgthqstdd.supabase.co\"+\"/storage/v1/object/social-images/\" +\n$('Generate Filename').item.json.image_filename\n}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "image/jpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2000,
+        416
+      ],
+      "id": "f2f1afdc-9686-468e-bba9-fcd538be976c",
+      "name": "Upload to Supabase",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        },
+        "httpCustomAuth": {
+          "id": "u3C7HfMkMWGOfZ7D",
+          "name": "Supabase Service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "adcc09bd-9642-4881-8be6-19128321622b",
+              "name": "image_url",
+              "value": "={{\n\"https://vpwgdgpntdetgthqstdd.supabase.co\" +\"/storage/v1/object/public/social-images/\" +\n$('Generate Filename').item.json.image_filename\n}}",
+              "type": "string"
+            },
+            {
+              "id": "1ff8d37f-044f-4a2d-8d78-faaa8b0e104c",
+              "name": "image_filename",
+              "value": "={{ $('Generate Filename').item.json.image_filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1808,
+        416
+      ],
+      "id": "ef974498-0f3a-4375-99be-c636a66dbb62",
+      "name": "Create Public URL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.image_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1616,
+        416
+      ],
+      "id": "050c316b-a922-4e47-af8f-7f8817c24991",
+      "name": "Verify Upload",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "20eea92a-3534-4f20-9833-3b6b99c0b330",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1440,
+        416
+      ],
+      "id": "a202d3c8-a159-4a22-ab05-c95b422a73fa",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.buffer.com",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "query GetChannels($OrganizationId: OrganizationId!) {   channels(input: { organizationId: $OrganizationId }) {     id     name     service   } }"
+            },
+            {
+              "name": "variables",
+              "value": "={{ { OrganizationId: $json.data.account.organizations[0].id } }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        416
+      ],
+      "id": "6f7f07e7-5bd3-4c34-a0af-a4dedb1f5cb6",
+      "name": "Buffer: Get Connected Profiles",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        },
+        "httpQueryAuth": {
+          "id": "WBQAZcxNWPaQVgxc",
+          "name": "Buffer API"
+        }
+      },
+      "notes": "BUFFER STAGE 2: Fetches all connected social channels for the organization.\n\"Channels\" is the new GraphQL name for what the REST API called \"Profiles\".\n\nRequires organizationId from previous node (Buffer: Get Account & Org ID).\nUses GraphQL variables to safely pass the org ID (no string concatenation).\n\nRESPONSE PATH: $json.data.channels (array with id, name, service fields)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// BUFFER STAGE 3: Map connected channels by platform service name\n// Input:  GraphQL response from channels query (data.channels array)\n// Output: Structured object with channel IDs per platform + content data\n\nconst rawData = $input.first().json;\nconst channelList = rawData?.data?.channels || [];\n\n// Map each service to its channel ID (first connected channel per platform wins)\nconst channelMap = {};\nfor (const channel of channelList) {\n  const service = (channel.service || '').toLowerCase();\n  const id = channel.id;\n  if (service && id && !channelMap[service]) {\n    channelMap[service] = {\n      id: String(id),\n      name: channel.displayName || channel.name || service,\n      service: service\n    };\n  }\n}\n\n// Pull captions and image URL from the upstream Build Final Output node\nconst content = $('Build Final Output (JSON)').item.json;\nconst postId = $('Workflow Context')?.item?.json?.post_id || '';\n\n// Structured logging for observability\nconsole.log('[Buffer] Channels retrieved:', JSON.stringify(Object.keys(channelMap)));\nconsole.log('[Buffer] instagram_channel_id:', channelMap['instagram']?.id || 'NOT CONNECTED');\nconsole.log('[Buffer] facebook_channel_id:', channelMap['facebook']?.id || 'NOT CONNECTED');\nconsole.log('[Buffer] linkedin_channel_id:', channelMap['linkedin']?.id || 'NOT CONNECTED');\nconsole.log('[Buffer] tiktok_channel_id:', channelMap['tiktok']?.id || 'NOT CONNECTED');\nconsole.log('[Buffer] twitter_channel_id:', channelMap['twitter']?.id || 'NOT CONNECTED');\nconsole.log('[Buffer] image_url:', content.image_url || 'MISSING');\nconsole.log('[Buffer] instagram_post length:', (content.instagram_post || '').length);\nconsole.log('[Buffer] facebook_post length:', (content.facebook_post || '').length);\nconsole.log('[Buffer] linkedin_post length:', (content.linkedin_post || '').length);\nconsole.log('[Buffer] tiktok_post length:', (content.tiktok_post || '').length);\n\nreturn [{\n  json: {\n    // Supabase post_id for DB status update\n    post_id: postId,\n    // Buffer channel IDs per platform (null = platform not connected in Buffer)\n    instagram_profile_id: channelMap['instagram']?.id || null,\n    facebook_profile_id:  channelMap['facebook']?.id  || null,\n    linkedin_profile_id:  channelMap['linkedin']?.id  || null,\n    tiktok_profile_id:    channelMap['tiktok']?.id    || null,\n    twitter_profile_id:   channelMap['twitter']?.id   || null,\n    // All channels for reference and DB logging\n    all_profiles: channelMap,\n    profiles_retrieved_at: new Date().toISOString(),\n    // Platform-specific captions \u2014 correctly mapped, never mixed between platforms\n    instagram_post: content.instagram_post || '',\n    facebook_post:  content.facebook_post  || '',\n    linkedin_post:  content.linkedin_post  || '',\n    tiktok_post:    content.tiktok_post    || '',\n    // Existing verified Supabase public image URL \u2014 no re-upload, no regeneration\n    image_url: content.image_url || '',\n    topic: content.topic || '',\n    generated_at: content.generated_at || '',\n    workflow_started_at: content.workflow_started_at || ''\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        416
+      ],
+      "id": "c48e62b6-95b8-4e34-9448-bf5f523c4547",
+      "name": "Buffer: Parse & Map Profiles",
+      "notes": "BUFFER STAGE 3: Maps GraphQL channels response (data.channels) to platform-keyed channel IDs.\nAlso carries all captions and image URL forward from Build Final Output.\nLogs all channel IDs and caption lengths for full observability."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.buffer.com",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { ... on PostActionSuccess { post { id text status dueAt } } ... on MutationError { message } } }"
+            },
+            {
+              "name": "variables",
+              "value": "={{ (() => { const input = {   text: $json.instagram_post,   channelId: $json.instagram_profile_id,   schedulingType: 'automatic',   mode: 'shareNow',   instagram: { type: 'post' } }; if ($json.image_url) {   input.assets = [{ image: { url: $json.image_url } }]; } return { input }; })() }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        1200
+      ],
+      "id": "24692196-ac4e-4d34-959a-5549bbb78ea7",
+      "name": "Buffer: Publish Instagram",
+      "retryOnFail": true,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        },
+        "httpQueryAuth": {
+          "id": "WBQAZcxNWPaQVgxc",
+          "name": "Buffer API"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "BUFFER PUBLISH: Instagram\nCaption field: instagram_post (never mixed with other platforms)\nImage: attached as media[0] when image_url is present (no re-upload)\nPublish mode: shareNow (immediate)\n\nGraphQL errors return as MutationError in response body (HTTP stays 200).\nCheck data.createPost.__typename: PostActionSuccess vs MutationError.\n\nTo schedule: change mode to 'customScheduled', add dueAt: 'ISO8601_UTC_STRING'\nTo queue: change mode to 'addToQueue'\n\nFault tolerant: continueOnFail=true. One platform failure never stops others.\nRetry: 3 attempts with 4s backoff."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.buffer.com",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { ... on PostActionSuccess { post { id text status dueAt } } ... on MutationError { message } } }"
+            },
+            {
+              "name": "variables",
+              "value": "={{ (() => { const input = {   text: $json.linkedin_post,   channelId: $json.linkedin_profile_id,   schedulingType: 'automatic',   mode: 'shareNow' }; if ($json.image_url) {   input.assets = [{ image: { url: $json.image_url } }]; } return { input }; })() }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        1008
+      ],
+      "id": "f71c206e-d55c-47ff-a4bc-88e3a60850d9",
+      "name": "Buffer: Publish LinkedIn",
+      "retryOnFail": true,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        },
+        "httpQueryAuth": {
+          "id": "WBQAZcxNWPaQVgxc",
+          "name": "Buffer API"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "BUFFER PUBLISH: LinkedIn\nCaption field: linkedin_post (never mixed with other platforms)\nImage: attached as media[0] when image_url is present (no re-upload)\nPublish mode: shareNow (immediate)\n\nGraphQL errors return as MutationError in response body (HTTP stays 200).\nCheck data.createPost.__typename: PostActionSuccess vs MutationError.\n\nTo schedule: change mode to 'customScheduled', add dueAt: 'ISO8601_UTC_STRING'\nTo queue: change mode to 'addToQueue'\n\nFault tolerant: continueOnFail=true. One platform failure never stops others.\nRetry: 3 attempts with 4s backoff."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.buffer.com",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { ... on PostActionSuccess { post { id text status dueAt } } ... on MutationError { message } } }"
+            },
+            {
+              "name": "variables",
+              "value": "={{ (() => { const input = {   text: $json.tiktok_post,   channelId: $json.tiktok_profile_id,   schedulingType: 'automatic',   mode: 'shareNow' }; if ($json.image_url) {   input.assets = [{ image: { url: $json.image_url } }]; } return { input }; })() }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        1408
+      ],
+      "id": "756c1d75-f3ec-43e8-903a-d16119b80588",
+      "name": "Buffer: Publish TikTok",
+      "retryOnFail": true,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        },
+        "httpQueryAuth": {
+          "id": "WBQAZcxNWPaQVgxc",
+          "name": "Buffer API"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "BUFFER PUBLISH: TikTok\nCaption field: tiktok_post (never mixed with other platforms)\nImage: attached as media[0] when image_url is present (no re-upload)\nPublish mode: shareNow (immediate)\n\nGraphQL errors return as MutationError in response body (HTTP stays 200).\nCheck data.createPost.__typename: PostActionSuccess vs MutationError.\n\nTo schedule: change mode to 'customScheduled', add dueAt: 'ISO8601_UTC_STRING'\nTo queue: change mode to 'addToQueue'\n\nFault tolerant: continueOnFail=true. One platform failure never stops others.\nRetry: 3 attempts with 4s backoff."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.2-klein-4b",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"{{ ($json.image_prompt || '').substring(0, 720) + '. No text, no watermarks, no logos.' }}\",\n  \"width\": 1024,\n  \"height\": 1024,\n  \"steps\": 4,\n  \"seed\": 0\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ec1b2563-a0f3-4cc8-8d12-1501ca200abd",
+      "name": "Image Generator (flux.2-klein-4b)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2880,
+        416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "notes": "IMAGE GENERATION: Still uses OpenAI DALL-E 3 for best image quality. To switch to NVIDIA NIM image models (qwen/qwen-image), change URL to https://integrate.api.nvidia.com/v1/images/generations and use NVIDIA NIM API credential.\n\nTO USE STABILITY AI: Change URL to https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.buffer.com",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "{ account { id email name organizations { id name } } }"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -192,
+        416
+      ],
+      "id": "81356f46-5eac-47a5-b41e-efd4d49acb3e",
+      "name": "Buffer: Get Account & Org ID",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        }
+      },
+      "notes": "BUFFER STAGE 1: Gets Buffer account + organization ID.\nThe organizationId is required for the channels query in Stage 2.\n\nGraphQL API: https://api.buffer.com\nAuth: Bearer token in Authorization header.\nGet your API key: https://publish.buffer.com/settings/api\n\nRESPONSE PATH: $json.data.account.organizations[0].id"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{\n'https://vpwgdgpntdetgthqstdd.supabase.co/rest/v1/posts?id=eq.' + $json.post_id\n}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2dkZ3BudGRldGd0aHFzdGRkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkwMjQzNSwiZXhwIjoyMDk4NDc4NDM1fQ.6ihODWYNxNuF7pQY5LgZ6J6IH2VkpGx25xZhG7NEbL8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2dkZ3BudGRldGd0aHFzdGRkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkwMjQzNSwiZXhwIjoyMDk4NDc4NDM1fQ.6ihODWYNxNuF7pQY5LgZ6J6IH2VkpGx25xZhG7NEbL8"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n(() => {\n\nconst body = {\n  updated_at: new Date().toISOString()\n};\n\nbody[$json.platform + \"_status\"] = $json.publish_status;\nbody[\"buffer_\" + $json.platform + \"_id\"] = $json.buffer_update_id;\n\nreturn body;\n\n})()\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        800,
+        1120
+      ],
+      "id": "6b0184ae-41b9-4879-8324-10006fa9a61b",
+      "name": "Update Post Status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WmsBKWVcezBuLQX6",
+          "name": "Buffer API"
+        },
+        "httpCustomAuth": {
+          "id": "u3C7HfMkMWGOfZ7D",
+          "name": "Supabase Service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vpwgdgpntdetgthqstdd.supabase.co/rest/v1/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2dkZ3BudGRldGd0aHFzdGRkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkwMjQzNSwiZXhwIjoyMDk4NDc4NDM1fQ.6ihODWYNxNuF7pQY5LgZ6J6IH2VkpGx25xZhG7NEbL8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2dkZ3BudGRldGd0aHFzdGRkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkwMjQzNSwiZXhwIjoyMDk4NDc4NDM1fQ.6ihODWYNxNuF7pQY5LgZ6J6IH2VkpGx25xZhG7NEbL8"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  topic: $json.topic,\n  instagram_post: $json.instagram_post,\n  facebook_post: $json.facebook_post,\n  linkedin_post: $json.linkedin_post,\n  tiktok_post: $json.tiktok_post,\n  image_prompt: $json.image_prompt,\n  image_url: $json.image_url,\n  content_model: $json.content_model,\n  image_model: $json.image_model,\n  workflow_started_at: $json.workflow_started_at,\n  duration_seconds: $json.duration_seconds,\n  status: \"generated\"\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1024,
+        512
+      ],
+      "id": "0425aa67-9746-4b41-83a8-999c68bed502",
+      "name": "Insert Post"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {post_id: $json.id} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1456,
+        672
+      ],
+      "id": "6404b107-cbfa-4cdc-995d-94e5b152c1ba",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "87a97f3b-8b65-4e4f-a494-2ba3a18f682c",
+              "name": "post_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "post_id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        992
+      ],
+      "id": "00c9cb5a-ad09-4beb-9295-af74ffac4a88",
+      "name": "Workflow Context"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vivent-social-campaign",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "vivent-webhook-trigger",
+      "name": "VIVENT Campaign Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3600,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const expected = $env.VIVENT_WEBHOOK_SECRET || '';\nconst received = $json.headers?.['x-vivent-webhook-secret'] || '';\nif (!expected || received !== expected) throw new Error('Invalid VIVENT webhook secret');\nreturn items;"
+      },
+      "id": "vivent-webhook-verifier",
+      "name": "Verify VIVENT Webhook Secret",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3380,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "vivent-campaign_id",
+              "name": "campaign_id",
+              "value": "={{ $json.body.campaign_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-execution_id",
+              "name": "execution_id",
+              "value": "={{ $json.body.execution_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-business_id",
+              "name": "business_id",
+              "value": "={{ $json.body.business_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-plan_id",
+              "name": "plan_id",
+              "value": "={{ $json.body.plan_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-company_name",
+              "name": "company_name",
+              "value": "={{ $json.body.company_name || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-business_type",
+              "name": "business_type",
+              "value": "={{ $json.body.business_type || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-description",
+              "name": "description",
+              "value": "={{ $json.body.description || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-website",
+              "name": "website",
+              "value": "={{ $json.body.website || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-target_audience",
+              "name": "target_audience",
+              "value": "={{ $json.body.target_audience || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-brand_voice",
+              "name": "brand_voice",
+              "value": "={{ $json.body.brand_voice || \"professional\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-promotion_goal",
+              "name": "promotion_goal",
+              "value": "={{ $json.body.promotion_goal || \"event awareness\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-campaign_type",
+              "name": "campaign_type",
+              "value": "={{ $json.body.campaign_type || \"promotion\" }}",
+              "type": "string"
+            },
+            {
+              "id": "vivent-current_event",
+              "name": "current_event",
+              "value": "={{ $json.body.current_event || {} }}",
+              "type": "object"
+            },
+            {
+              "id": "vivent-platforms",
+              "name": "platforms",
+              "value": "={{ $json.body.platforms || [] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "vivent-campaign-context",
+      "name": "VIVENT Campaign Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3160,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $input.first().json;\nconst allowed = $('VIVENT Campaign Context').item.json.platforms || [];\nconst captions = { instagram: output.instagram_post, facebook: output.facebook_post, linkedin: output.linkedin_post, tiktok: output.tiktok_post };\nreturn allowed.filter(platform => captions[platform]).map(platform => ({ json: { ...output, platform, caption: captions[platform] } }));"
+      },
+      "id": "vivent-platform-filter",
+      "name": "Filter Purchased Platforms",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1900,
+        650
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.VIVENT_API_URL + \"/automation/social-media/results\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-VIVENT-Webhook-Secret",
+              "value": "={{ $env.AUTOMATION_CALLBACK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { campaign_id: $('VIVENT Campaign Context').item.json.campaign_id, execution_id: $('VIVENT Campaign Context').item.json.execution_id, status: 'completed', duration_ms: Math.max(0, Date.now() - new Date($('Merge Topic + Config').item.json.workflow_started_at).getTime()), posts: $items('Filter Purchased Platforms').map(item => ({ platform: item.json.platform, caption: item.json.caption, image_url: item.json.image_url, status: 'generated', ai_prompt: item.json.topic, image_prompt: item.json.image_prompt, model_used: item.json.content_model })) } }}",
+        "options": {}
+      },
+      "id": "vivent-results-callback",
+      "name": "Return Results to VIVENT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2140,
+        650
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set Global Config": {
+      "main": [
+        [
+          {
+            "node": "Merge Topic + Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Topic + Config": {
+      "main": [
+        [
+          {
+            "node": "Research Agent (HTTP - DeepSeek V4 Pro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent (HTTP - DeepSeek V4 Pro)": {
+      "main": [
+        [
+          {
+            "node": "Parse Research Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Research Output": {
+      "main": [
+        [
+          {
+            "node": "Content Generator (HTTP - Mistral Medium 3.5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Generator (HTTP - Mistral Medium 3.5)": {
+      "main": [
+        [
+          {
+            "node": "Parse Content Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Content Output": {
+      "main": [
+        [
+          {
+            "node": "Quality Check (HTTP - Mistral Medium 3.5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Check (HTTP - Mistral Medium 3.5)": {
+      "main": [
+        [
+          {
+            "node": "Parse QC Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse QC Result": {
+      "main": [
+        [
+          {
+            "node": "Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Image Generator (flux.2-klein-4b)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retry Check (Max Retries?)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Check (Max Retries?)": {
+      "main": [
+        [
+          {
+            "node": "Increment Retry Counter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error: Max Retries Exceeded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Retry Counter": {
+      "main": [
+        [
+          {
+            "node": "Content Generator (HTTP - Mistral Medium 3.5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Image URL": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Final Output (JSON)": {
+      "main": [
+        [
+          {
+            "node": "Filter Purchased Platforms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Generate Filename",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Filename": {
+      "main": [
+        [
+          {
+            "node": "Upload to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Create Public URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Public URL": {
+      "main": [
+        [
+          {
+            "node": "Verify Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Upload": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Build Final Output (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer: Get Connected Profiles": {
+      "main": [
+        [
+          {
+            "node": "Buffer: Parse & Map Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer: Parse & Map Profiles": {
+      "main": [
+        [
+          {
+            "node": "Buffer: Publish LinkedIn",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buffer: Publish Instagram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buffer: Publish TikTok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer: Publish LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Update Post Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer: Publish Instagram": {
+      "main": [
+        [
+          {
+            "node": "Update Post Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer: Publish TikTok": {
+      "main": [
+        [
+          {
+            "node": "Update Post Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generator (flux.2-klein-4b)": {
+      "main": [
+        [
+          {
+            "node": "Parse Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer: Get Account & Org ID": {
+      "main": [
+        [
+          {
+            "node": "Buffer: Get Connected Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Post": {
+      "main": [
+        [
+          {
+            "node": "Workflow Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Context": {
+      "main": [
+        [
+          {
+            "node": "Buffer: Get Account & Org ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VIVENT Campaign Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify VIVENT Webhook Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify VIVENT Webhook Secret": {
+      "main": [
+        [
+          {
+            "node": "VIVENT Campaign Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VIVENT Campaign Context": {
+      "main": [
+        [
+          {
+            "node": "Set Global Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Purchased Platforms": {
+      "main": [
+        [
+          {
+            "node": "Return Results to VIVENT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1724f278-b59b-493f-97ab-0e7571787a87",
+  "meta": {
+    "instanceId": "2702e0c8951e23f60c6fbf11211f054294b20f90300f1b81a87b0a9789e5ade0"
+  },
+  "nodeGroups": [],
+  "id": "fHAqZjj4xpE6UN6O",
+  "tags": [
+    {
+      "updatedAt": "2026-06-26T16:08:33.287Z",
+      "createdAt": "2026-06-26T16:08:33.287Z",
+      "id": "7Wel03Sl3b2r9luj",
+      "name": "production"
+    },
+    {
+      "updatedAt": "2026-06-26T16:08:33.280Z",
+      "createdAt": "2026-06-26T16:08:33.280Z",
+      "id": "8ysWUayQ98Vkwh6R",
+      "name": "social-media"
+    },
+    {
+      "updatedAt": "2026-06-27T11:36:05.758Z",
+      "createdAt": "2026-06-27T11:36:05.758Z",
+      "id": "sfYoBbE0e14YAXhB",
+      "name": "nvidia-nim"
+    }
+  ]
+}

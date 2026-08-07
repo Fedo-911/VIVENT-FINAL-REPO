@@ -2,6 +2,21 @@ from __future__ import annotations
 
 from conftest import auth_header
 
+
+def test_job_fair_registration_does_not_require_a_ticket(client, tokens, fake_supabase):
+    event_id = "66666666-6666-6666-6666-666666666666"
+    fake_supabase.db["events"][0]["category"] = "job_fair"
+
+    response = client.post(
+        f"/events/{event_id}/register",
+        headers=auth_header(tokens["student"]),
+        json={"role_at_event": "participant"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["payment_status"] == "pending"
+    assert response.json()["payment_id"] is None
+
 def test_stripe_mock_payment_flow(client, tokens, fake_supabase):
     event_id = '66666666-6666-6666-6666-666666666666'
     student_id = '22222222-2222-2222-2222-222222222222'
@@ -33,7 +48,7 @@ def test_stripe_mock_payment_flow(client, tokens, fake_supabase):
     session_data = res_session.json()
     assert 'session_id' in session_data
     assert 'checkout_url' in session_data
-    assert float(session_data['amount']) == 99.0 # default basic plan price in conftest.py is 99.0
+    assert float(session_data['amount']) == 5539.0
     
     # 3. Retrieve HTML mock portal
     from urllib.parse import urlparse
@@ -56,7 +71,7 @@ def test_stripe_mock_payment_flow(client, tokens, fake_supabase):
             'object': {
                 'id': session_data['session_id'],
                 'amount_total': 9900,
-                'currency': 'usd',
+                'currency': 'pkr',
                 'payment_status': 'paid',
                 'metadata': {
                     'user_id': student_id,
@@ -75,7 +90,7 @@ def test_stripe_mock_payment_flow(client, tokens, fake_supabase):
     payments_in_db = fake_supabase.db['payments']
     assert len(payments_in_db) == 1
     assert payments_in_db[0]['transaction_id'] == session_data['session_id']
-    assert payments_in_db[0]['amount'] == 99.0
+    assert payments_in_db[0]['amount'] == 5539.0
     assert payments_in_db[0]['payment_method'] == 'stripe_card'
     
     # Confirm registration payment status changed to "completed"
@@ -121,7 +136,11 @@ def test_food_event_requires_ticket_before_registration(client, tokens, fake_sup
     event_id = '66666666-6666-6666-6666-666666666666'
     student_id = '22222222-2222-2222-2222-222222222222'
     fake_supabase.db['events'][0]['category'] = 'food'
-    fake_supabase.db['events'][0]['venue_details'] = {'ticket_price': 150}
+    fake_supabase.db['events'][0]['venue_details'] = {'ticket_price': 450}
+
+    event_response = client.get(f'/events/{event_id}')
+    assert event_response.status_code == 200
+    assert float(event_response.json()['ticket_price']) == 450.0
 
     blocked_registration = client.post(
         f'/events/{event_id}/register',
@@ -138,7 +157,7 @@ def test_food_event_requires_ticket_before_registration(client, tokens, fake_sup
     )
     assert session_response.status_code == 201
     session_data = session_response.json()
-    assert float(session_data['amount']) == 150.0
+    assert float(session_data['amount']) == 450.0
 
     webhook_response = client.post(
         '/payments/stripe/webhook',
@@ -147,7 +166,7 @@ def test_food_event_requires_ticket_before_registration(client, tokens, fake_sup
             'data': {
                 'object': {
                     'id': session_data['session_id'],
-                    'amount_total': 15000,
+                        'amount_total': 45000,
                     'payment_status': 'paid',
                     'metadata': {
                         'user_id': student_id,
@@ -190,4 +209,8 @@ def test_food_event_requires_ticket_before_registration(client, tokens, fake_sup
 
     my_registrations = client.get('/registrations/my', headers=auth_header(tokens['student']))
     assert my_registrations.status_code == 200
-    assert my_registrations.json()[0]['event_id'] == event_id
+    registration = my_registrations.json()[0]
+    assert registration['event_id'] == event_id
+    assert registration['registration_status'] == 'Registered'
+    assert registration['event']['id'] == event_id
+    assert registration['event']['category'] == 'food'

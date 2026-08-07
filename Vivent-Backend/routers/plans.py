@@ -8,6 +8,7 @@ from dependencies import require_admin
 from schemas import MessageResponse, PlanCreate, PlanOut, PlanUpdate
 from supabase_client import supabase
 from utils.helpers import get_row_or_404, utc_now_iso, validate_plan_name
+from utils.promotion_plans import PLAN_PRICES, PROMOTION_CURRENCY
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 
@@ -22,7 +23,8 @@ def list_active_plans() -> list[dict]:
         .order("price", desc=False)
         .execute()
     )
-    return response.data or []
+    plans = response.data or []
+    return [{**plan, "price": PLAN_PRICES.get(plan["name"], plan["price"]), "currency": PROMOTION_CURRENCY} for plan in plans]
 
 
 @router.post("", response_model=PlanOut, status_code=status.HTTP_201_CREATED)
@@ -33,7 +35,8 @@ def create_plan(payload: PlanCreate, current_user: dict = Depends(require_admin)
     existing = supabase.table("plans").select("id").eq("name", payload.name).limit(1).execute()
     if existing.data:
         raise HTTPException(status_code=400, detail="A plan with this name already exists.")
-    data = payload.model_dump()
+    data = payload.model_dump(exclude={"currency"})
+    data["price"] = PLAN_PRICES[payload.name]
     if "price" in data and data["price"] is not None:
         data["price"] = float(data["price"])
     data["created_at"] = utc_now_iso()
@@ -56,6 +59,9 @@ def update_plan(
         update_data["price"] = float(update_data["price"])
     if "name" in update_data:
         validate_plan_name(update_data["name"])
+    existing = get_row_or_404("plans", plan_id)
+    canonical_name = update_data.get("name", existing["name"])
+    update_data["price"] = PLAN_PRICES[canonical_name]
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields provided for update.")
     update_data["updated_at"] = utc_now_iso()
@@ -70,4 +76,3 @@ def delete_plan(plan_id: str, current_user: dict = Depends(require_admin)) -> Me
     get_row_or_404("plans", plan_id)
     supabase.table("plans").update({"is_active": False, "updated_at": utc_now_iso()}).eq("id", plan_id).execute()
     return MessageResponse(detail="Plan deactivated successfully.")
-

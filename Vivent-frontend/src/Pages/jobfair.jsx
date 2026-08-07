@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FaBriefcase, FaMapMarkerAlt } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 import { eventsApi, registrationsApi } from "../utils/api";
 import { mergeCompletedFallbacks } from "../data/completedEvents";
 
@@ -13,13 +14,16 @@ const initialApplication = {
   coverLetter: "",
 };
 
-const Jobfair = () => {
+const Jobfair = ({ isAuthenticated }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paymentResult, setPaymentResult] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicationForm, setApplicationForm] = useState(initialApplication);
+  const [applicationErrors, setApplicationErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [registeredIds, setRegisteredIds] = useState(new Set());
 
@@ -51,6 +55,13 @@ const Jobfair = () => {
   }, []);
 
   useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    registrationsApi.myRegistrations()
+      .then((registrations) => setRegisteredIds(new Set((registrations || []).map((registration) => registration.event_id))))
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (!paymentResult) return undefined;
     const timer = setTimeout(() => setPaymentResult(""), 3000);
     return () => clearTimeout(timer);
@@ -63,21 +74,57 @@ const Jobfair = () => {
 
   const updateField = (field, value) => {
     setApplicationForm((current) => ({ ...current, [field]: value }));
+    if (
+      (field === "currentRole" || field === "coverLetter") &&
+      value.trim()
+    ) {
+      setApplicationErrors((current) => ({ ...current, [field]: "" }));
+    }
   };
 
   const handleCvFileChange = (file) => {
-    updateField("cvFileName", file?.name || "");
-    updateField("cvLink", file?.name ? `Uploaded file: ${file.name}` : "");
+    const validFilePattern = /\.(pdf|doc|docx|jpg|jpeg|png)$/i;
+    const isValidFile = Boolean(file?.name && validFilePattern.test(file.name));
+
+    setApplicationForm((current) => ({
+      ...current,
+      cvFileName: isValidFile ? file.name : "",
+      cvLink: isValidFile ? `Uploaded file: ${file.name}` : "",
+    }));
+
+    if (isValidFile) {
+      setApplicationErrors((current) => ({ ...current, cvFile: "" }));
+    }
   };
 
   const closeModal = () => {
     setSelectedJob(null);
     setApplicationForm(initialApplication);
+    setApplicationErrors({});
   };
 
   const submitApplication = async (e) => {
     e.preventDefault();
     if (!selectedJob) return;
+
+    const validationErrors = {
+      currentRole: applicationForm.currentRole
+        ? ""
+        : "Please select your current role.",
+      cvFile: applicationForm.cvFileName ? "" : "CV is required.",
+      coverLetter: applicationForm.coverLetter.trim()
+        ? ""
+        : "Cover Letter is required.",
+    };
+
+    setApplicationErrors(validationErrors);
+    if (Object.values(validationErrors).some(Boolean)) return;
+
+    if (!e.currentTarget.checkValidity()) {
+      e.currentTarget.reportValidity();
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Register for the event on the backend
@@ -246,13 +293,17 @@ const Jobfair = () => {
                           onClick={() => {
                             if (isCompleted) return;
                             if (isRegistered) return;
+                            if (!isAuthenticated) {
+                              navigate("/login", { state: { from: location } });
+                              return;
+                            }
                             setSelectedJob(item);
                             setApplicationForm(initialApplication);
                           }}
                           disabled={isCompleted || isRegistered}
                           type="button"
                         >
-                          {isCompleted ? "Completed" : isRegistered ? "Registered" : "Apply Now"}
+                          {isCompleted ? "Completed" : isRegistered ? "Already Registered" : !isAuthenticated ? "Login to Register" : "Apply Now"}
                         </button>
                       </div>
                     </div>
@@ -273,6 +324,7 @@ const Jobfair = () => {
         <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-3">
           <form
             className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-4 shadow-2xl md:p-5"
+            noValidate
             onSubmit={submitApplication}
           >
             <div className="flex items-start justify-between gap-4">
@@ -294,54 +346,79 @@ const Jobfair = () => {
             </div>
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <label className="block text-sm font-bold text-blue-800">
+              <label className="block text-sm font-bold text-blue-800" htmlFor="applicant-name">
                 Full Name
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-blue-800"
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-black placeholder:text-black/60 outline-none focus:border-blue-800"
+                  id="applicant-name"
                   onChange={(e) => updateField("applicantName", e.target.value)}
+                  placeholder="Enter your full name"
                   required
                   value={applicationForm.applicantName}
                 />
               </label>
 
-              <label className="block text-sm font-bold text-blue-800">
+              <label className="block text-sm font-bold text-blue-800" htmlFor="applicant-email">
                 Email
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-blue-800"
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-black placeholder:text-black/60 outline-none focus:border-blue-800"
+                  id="applicant-email"
                   onChange={(e) => updateField("email", e.target.value)}
+                  placeholder="Enter your email"
                   required
                   type="email"
                   value={applicationForm.email}
                 />
               </label>
 
-              <label className="block text-sm font-bold text-blue-800">
+              <label className="block text-sm font-bold text-blue-800" htmlFor="applicant-phone">
                 Phone
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-blue-800"
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-black placeholder:text-black/60 outline-none focus:border-blue-800"
+                  id="applicant-phone"
                   onChange={(e) => updateField("phone", e.target.value)}
+                  placeholder="Enter your phone number"
                   required
                   value={applicationForm.phone}
                 />
               </label>
 
-              <label className="block text-sm font-bold text-blue-800">
-                Current Role
-                <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-black placeholder:text-black outline-none focus:border-blue-800"
+              <label className="block text-sm font-bold text-blue-800" htmlFor="current-role">
+                Current Role <span aria-hidden="true" className="text-red-500">*</span>
+                <select
+                  aria-describedby={applicationErrors.currentRole ? "current-role-error" : undefined}
+                  aria-invalid={Boolean(applicationErrors.currentRole)}
+                  className={`mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-blue-800 ${
+                    applicationForm.currentRole ? "text-black" : "text-black/60"
+                  }`}
+                  id="current-role"
                   onChange={(e) => updateField("currentRole", e.target.value)}
-                  placeholder="Student, graduate, developer..."
+                  required
                   value={applicationForm.currentRole}
-                />
+                >
+                  <option disabled value="">Select your current role</option>
+                  <option value="Student">Student</option>
+                  <option value="Graduate">Graduate</option>
+                  <option value="Developer">Developer</option>
+                </select>
+                {applicationErrors.currentRole && (
+                  <p className="mt-1 text-xs font-medium text-red-500" id="current-role-error">
+                    {applicationErrors.currentRole}
+                  </p>
+                )}
               </label>
 
-              <label className="block text-sm font-bold text-blue-800 md:col-span-2">
-                Upload CV
+              <label className="block text-sm font-bold text-blue-800 md:col-span-2" htmlFor="upload-cv">
+                Upload CV <span aria-hidden="true" className="text-red-500">*</span>
                 <div className="mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
                   <input
                     accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                    aria-describedby={applicationErrors.cvFile ? "upload-cv-error" : undefined}
+                    aria-invalid={Boolean(applicationErrors.cvFile)}
                     className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-900"
+                    id="upload-cv"
                     onChange={(e) => handleCvFileChange(e.target.files?.[0])}
+                    required
                     type="file"
                   />
                   <p className="mt-2 text-xs font-medium text-gray-500">
@@ -353,16 +430,30 @@ const Jobfair = () => {
                     </p>
                   )}
                 </div>
+                {applicationErrors.cvFile && (
+                  <p className="mt-1 text-xs font-medium text-red-500" id="upload-cv-error">
+                    {applicationErrors.cvFile}
+                  </p>
+                )}
               </label>
 
-              <label className="block text-sm font-bold text-blue-800 md:col-span-2">
-                Cover Letter
+              <label className="block text-sm font-bold text-blue-800 md:col-span-2" htmlFor="cover-letter">
+                Cover Letter <span aria-hidden="true" className="text-red-500">*</span>
                 <textarea
-                  className="mt-2 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-blue-800"
+                  aria-describedby={applicationErrors.coverLetter ? "cover-letter-error" : undefined}
+                  aria-invalid={Boolean(applicationErrors.coverLetter)}
+                  className="mt-2 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-black placeholder:text-black/60 outline-none focus:border-blue-800"
+                  id="cover-letter"
                   onChange={(e) => updateField("coverLetter", e.target.value)}
                   placeholder="Tell us why you're a good fit..."
+                  required
                   value={applicationForm.coverLetter}
                 />
+                {applicationErrors.coverLetter && (
+                  <p className="mt-1 text-xs font-medium text-red-500" id="cover-letter-error">
+                    {applicationErrors.coverLetter}
+                  </p>
+                )}
               </label>
             </div>
 

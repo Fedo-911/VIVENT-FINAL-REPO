@@ -5,11 +5,12 @@ from __future__ import annotations
 from supabase_client import supabase
 from utils.helpers import utc_now_iso
 from utils.passwords import hash_password
+from utils.promotion_plans import PLAN_PRICES
 
 DEFAULT_PLANS = [
     {
         "name": "Basic",
-        "price": 99.0,
+        "price": PLAN_PRICES["Basic"],
         "facilities": {
             "parking": False,
             "refreshments": False,
@@ -20,8 +21,8 @@ DEFAULT_PLANS = [
         "is_active": True,
     },
     {
-        "name": "Normal",
-        "price": 249.0,
+        "name": "Standard",
+        "price": PLAN_PRICES["Standard"],
         "facilities": {
             "parking": True,
             "refreshments": True,
@@ -33,7 +34,7 @@ DEFAULT_PLANS = [
     },
     {
         "name": "Premium",
-        "price": 499.0,
+        "price": PLAN_PRICES["Premium"],
         "facilities": {
             "parking": True,
             "refreshments": True,
@@ -51,10 +52,13 @@ def seed_plans() -> None:
     for plan in DEFAULT_PLANS:
         existing = supabase.table("plans").select("id").eq("name", plan["name"]).limit(1).execute()
         if existing.data:
-            continue
-        supabase.table("plans").insert(
-            {**plan, "created_at": utc_now_iso(), "updated_at": utc_now_iso()}
-        ).execute()
+            supabase.table("plans").update(
+                {"price": plan["price"], "facilities": plan["facilities"], "is_active": True, "updated_at": utc_now_iso()}
+            ).eq("id", existing.data[0]["id"]).execute()
+        else:
+            supabase.table("plans").insert(
+                {**plan, "created_at": utc_now_iso(), "updated_at": utc_now_iso()}
+            ).execute()
 
 
 def seed_admin() -> None:
@@ -80,4 +84,3 @@ if __name__ == "__main__":
     seed_plans()
     seed_admin()
     print("Seeding complete.")
-

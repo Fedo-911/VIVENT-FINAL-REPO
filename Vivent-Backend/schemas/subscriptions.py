@@ -21,6 +21,7 @@ class PlanSummary(BaseModel):
     price: float
     facilities: dict[str, Any] = {}
     is_active: bool = True
+    currency: str = "PKR"
 
 
 class SubscriptionOut(BaseModel):
